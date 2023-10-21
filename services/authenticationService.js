@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export async function createUser(userToRegister) {
+export async function registerUser(userToRegister) {
   try {
     for (let property in userToRegister) {
       userToRegister[property] = userToRegister[property].trim();

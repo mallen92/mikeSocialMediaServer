@@ -9,7 +9,9 @@ export default function validateRegistration(req, res, next) {
     res.status(400).json({ error: "No email address was sent." });
   } else {
     /* An email was sent, so validate that it is correctly formatted. */
-    if (validateEmailFormat(userEmail)) {
+    if (!validateEmailFormat(userEmail)) {
+      res.status(400).json({ error: "Email address has invalid format." });
+    } else {
       const userPassword = req.body.password;
 
       if (!userPassword || userPassword.trim() === "") {
@@ -59,8 +61,6 @@ export default function validateRegistration(req, res, next) {
           }
         }
       }
-    } else {
-      res.status(400).json({ error: "Email address has invalid format." });
     }
   }
 }
