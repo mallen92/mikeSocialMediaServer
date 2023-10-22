@@ -31,14 +31,10 @@ export async function registerUser(userToRegister) {
     };
     await userDao.putUser(newUser);
 
-    /* Create a new object containing the new user's login credentials.
-    This object will be returned to the client, should it want to automatically
-    log the user in after registration. */
     const newUserLoginCreds = {
       email,
       password: hashedPassword,
     };
-
     return { message: "userSuccessfullyRegistered", data: newUserLoginCreds };
   }
 }
@@ -61,8 +57,7 @@ export async function loginUser(userToLogIn) {
 
       delete registeredUser.user_password;
       registeredUser.token = token;
-
-      return { message: "userSuccessfullyLoggedIn", data: registeredUser };
+      return { message: "userAuthenticated", data: registeredUser };
     } else {
       return { message: "incorrectCredentials" };
     }

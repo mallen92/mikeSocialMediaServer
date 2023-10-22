@@ -31,13 +31,18 @@ router.post("/register", validateRegistration, async (req, res) => {
     const response = await authenticationService.registerUser(newUserObj);
 
     switch (response.message) {
+      case "userSuccessfullyRegistered":
+        res.status(200).json({ data: response.data });
+        break;
       case "userAlreadyExists":
         res
           .status(400)
           .json({ error: "A user with that email already exists." });
         break;
       default:
-        res.status(200).json({ data: response.data });
+        const error = "The server encountered a problem.";
+        res.status(500).json({ error });
+        logger.error({ message: error });
     }
   } catch (error) {
     res.status(500).json({ error: "SERVER ERROR" });
@@ -51,6 +56,9 @@ router.post("/login", validateLogin, async (req, res) => {
     const response = await authenticationService.loginUser(loginCreds);
 
     switch (response.message) {
+      case "userAuthenticated":
+        res.status(200).json({ data: response.data });
+        break;
       case "incorrectCredentials":
         res.status(400).json({ error: "Incorrect email or password." });
         break;
@@ -60,7 +68,9 @@ router.post("/login", validateLogin, async (req, res) => {
           .json({ error: "A user with that email does not exist." });
         break;
       default:
-        res.status(200).json({ data: response.data });
+        const error = "The server encountered a problem.";
+        res.status(500).json({ error });
+        logger.error({ message: error });
     }
   } catch (error) {
     res.status(500).json({ error: "SERVER ERROR" });
