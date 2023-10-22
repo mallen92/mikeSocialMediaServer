@@ -1,25 +1,84 @@
 import bcrypt from "bcrypt";
+import moment from "moment";
+import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import * as userDao from "../repository/userDao.js";
 
 export async function registerUser(userToRegister) {
   for (let property in userToRegister) {
     userToRegister[property] = userToRegister[property].trim();
   }
-  /* Destructring the userToRegister object into its individual
-  properties that I can access directly.  */
-  const { email, password, firstName, lastName, birthDate } = userToRegister;
-  /* Encrypting the password */
-  const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash(password, salt);
-  /* Creating a new object that will be sent to the DAO to save
-  the new user. */
-  const createdUser = {
-    email,
-    password: hashedPassword,
-    firstName,
-    lastName,
-    birthDate,
-  };
 
-  return createdUser;
+  const { email, password, firstName, lastName, birthDate } = userToRegister;
+  const existingUser = await userDao.getUser(email);
+
+  if (existingUser.Items[0]) {
+    return { message: "userAlreadyExists" };
+  } else {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const registrationDate = formatDate(moment());
+
+    const newUser = {
+      id: uuidv4(),
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      birthDate: formatDate(birthDate),
+      registrationDate,
+    };
+    await userDao.putUser(newUser);
+
+    /* Create a new object containing the new user's login credentials.
+    This object will be returned to the client, should it want to automatically
+    log the user in after registration. */
+    const newUserLoginCreds = {
+      email,
+      password: hashedPassword,
+    };
+
+    return { message: "userSuccessfullyRegistered", data: newUserLoginCreds };
+  }
 }
+
+export async function loginUser(userToLogIn) {
+  const { email, password } = userToLogIn;
+  const data = await userDao.getUser(email);
+
+  if (data.Items[0]) {
+    const registeredUser = data.Items[0];
+    const registeredUserPass = registeredUser.user_password;
+    const passwordsMatch = await bcrypt.compare(password, registeredUserPass);
+
+    if (passwordsMatch) {
+      const JWT_SECRET = fs.readFileSync("jwt.txt", {
+        encoding: "utf8",
+        flag: "r",
+      });
+      const token = jwt.sign({ id: registeredUser.user_id }, JWT_SECRET);
+
+      delete registeredUser.user_password;
+      registeredUser.token = token;
+
+      return { message: "userSuccessfullyLoggedIn", data: registeredUser };
+    } else {
+      return { message: "incorrectCredentials" };
+    }
+  } else {
+    return { message: "userDoesntExist" };
+  }
+}
+
+/* HELPER FUNCTIONS */
+
+function formatDate(date) {
+  const month = moment(date).month() + 1;
+  const day = moment(date).date();
+  const year = moment(date).year();
+
+  return `${month}/${day}/${year}`;
+}
+
+/* END HELPER FUNCTIONS */

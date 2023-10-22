@@ -13,23 +13,58 @@ const logger = createLogger({
   transports: [new transports.File({ filename: "error.log" })],
 });
 
+const validateLogin = (req, res, next) => {
+  if (!req.body.email || req.body.email.trim() === "") {
+    res.status(400).json({ error: "No email address was sent." });
+  } else {
+    if (!req.body.password || req.body.password.trim() === "") {
+      res.status(400).json({ error: "No password was sent." });
+    } else {
+      next();
+    }
+  }
+};
+
 router.post("/register", validateRegistration, async (req, res) => {
   try {
     const newUserObj = req.body;
     const response = await authenticationService.registerUser(newUserObj);
-    res.status(200).json({ data: response });
+
+    switch (response.message) {
+      case "userAlreadyExists":
+        res
+          .status(400)
+          .json({ error: "A user with that email already exists." });
+        break;
+      default:
+        res.status(200).json({ data: response.data });
+    }
   } catch (error) {
     res.status(500).json({ error: "SERVER ERROR" });
     logger.error({ message: error });
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", validateLogin, async (req, res) => {
   try {
     const loginCreds = req.body;
-    console.log(loginCreds);
+    const response = await authenticationService.loginUser(loginCreds);
+
+    switch (response.message) {
+      case "incorrectCredentials":
+        res.status(400).json({ error: "Incorrect email or password." });
+        break;
+      case "userDoesntExist":
+        res
+          .status(400)
+          .json({ error: "A user with that email does not exist." });
+        break;
+      default:
+        res.status(200).json({ data: response.data });
+    }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "SERVER ERROR" });
+    logger.error({ message: error });
   }
 });
 
