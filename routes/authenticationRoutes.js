@@ -31,7 +31,7 @@ router.post("/register", validateRegistration, async (req, res) => {
     const response = await authenticationService.registerUser(newUserObj);
 
     switch (response.message) {
-      case "userSuccessfullyRegistered":
+      case "userRegistered":
         res.status(200).json({ data: response.data });
         break;
       case "userAlreadyExists":
@@ -53,7 +53,7 @@ router.post("/register", validateRegistration, async (req, res) => {
 router.post("/login", validateLogin, async (req, res) => {
   try {
     const loginCreds = req.body;
-    const response = await authenticationService.loginUser(loginCreds);
+    const response = await authenticationService.logInUser(loginCreds);
 
     switch (response.message) {
       case "userAuthenticated":
@@ -65,7 +65,7 @@ router.post("/login", validateLogin, async (req, res) => {
       case "userDoesntExist":
         res
           .status(400)
-          .json({ error: "A user with that email does not exist." });
+          .json({ error: "A user with that email address does not exist." });
         break;
       default:
         const error = "The server encountered a problem.";

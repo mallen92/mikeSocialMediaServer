@@ -1,63 +1,58 @@
+import fs from "fs";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import jwt from "jsonwebtoken";
-import fs from "fs";
 import * as userDao from "../repository/userDao.js";
 
 export async function registerUser(userToRegister) {
-  for (let property in userToRegister) {
+  for (const property in userToRegister) {
     userToRegister[property] = userToRegister[property].trim();
   }
 
   const { email, password, firstName, lastName, birthDate } = userToRegister;
-  const existingUser = await userDao.getUser(email);
 
-  if (existingUser.Items[0]) {
-    return { message: "userAlreadyExists" };
-  } else {
+  const existingUser = await userDao.getUserByEmail(email);
+  if (existingUser.Items.length === 0) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-    const registrationDate = formatDate(moment());
 
-    const newUser = {
-      id: uuidv4(),
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      birthDate: formatDate(birthDate),
-      registrationDate,
+    userToRegister = {
+      user_id: uuidv4(),
+      user_email: email,
+      user_password: hashedPassword,
+      user_first_name: firstName,
+      user_last_name: lastName,
+      user_birth_date: formatDate(birthDate),
+      user_registration_date: formatDate(moment()),
     };
-    await userDao.putUser(newUser);
+    await userDao.putUser(userToRegister);
 
-    const newUserLoginCreds = {
-      email,
-      password: hashedPassword,
+    return {
+      message: "userRegistered",
+      data: generateToken(userToRegister),
     };
-    return { message: "userSuccessfullyRegistered", data: newUserLoginCreds };
+  } else {
+    return { message: "userAlreadyExists" };
   }
 }
 
-export async function loginUser(userToLogIn) {
+export async function logInUser(userToLogIn) {
   const { email, password } = userToLogIn;
-  const data = await userDao.getUser(email);
+  const data = await userDao.getUserByEmail(email);
 
-  if (data.Items[0]) {
+  if (data.Items.length !== 0) {
     const registeredUser = data.Items[0];
-    const registeredUserPass = registeredUser.user_password;
-    const passwordsMatch = await bcrypt.compare(password, registeredUserPass);
+    const passwordsMatch = await bcrypt.compare(
+      password,
+      registeredUser.user_password
+    );
 
     if (passwordsMatch) {
-      const JWT_SECRET = fs.readFileSync("jwt.txt", {
-        encoding: "utf8",
-        flag: "r",
-      });
-      const token = jwt.sign({ id: registeredUser.user_id }, JWT_SECRET);
-
-      delete registeredUser.user_password;
-      registeredUser.token = token;
-      return { message: "userAuthenticated", data: registeredUser };
+      return {
+        message: "userAuthenticated",
+        data: generateToken(registeredUser),
+      };
     } else {
       return { message: "incorrectCredentials" };
     }
@@ -74,6 +69,25 @@ function formatDate(date) {
   const year = moment(date).year();
 
   return `${month}/${day}/${year}`;
+}
+
+function generateToken(user) {
+  const JWT_SECRET = fs.readFileSync("jwt.txt", {
+    encoding: "utf8",
+  });
+
+  const token = jwt.sign(
+    {
+      id: user.user_id,
+      email: user.user_email,
+      firstName: user.user_first_name,
+      lastName: user.user_last_name,
+      birthDate: user.user_birth_date,
+      registrationDate: user.user_registration_date,
+    },
+    JWT_SECRET
+  );
+  return token;
 }
 
 /* END HELPER FUNCTIONS */

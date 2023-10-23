@@ -6,7 +6,7 @@ AWS.config.update({
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-export async function getUser(email) {
+export async function getUserByEmail(email) {
   const params = {
     TableName: "user",
     IndexName: "user_email_index",
@@ -20,16 +20,26 @@ export async function getUser(email) {
 }
 
 export async function putUser(user) {
+  const {
+    user_id,
+    user_email,
+    user_password,
+    user_first_name,
+    user_last_name,
+    user_birth_date,
+    user_registration_date,
+  } = user;
+
   const params = {
     TableName: "user",
     Item: {
-      user_id: user.id,
-      user_email: user.email,
-      user_password: user.password,
-      user_first_name: user.firstName,
-      user_last_name: user.lastName,
-      user_birth_date: user.birthDate,
-      user_registration_date: user.registrationDate,
+      user_id,
+      user_email,
+      user_password,
+      user_first_name,
+      user_last_name,
+      user_birth_date,
+      user_registration_date,
     },
   };
 
