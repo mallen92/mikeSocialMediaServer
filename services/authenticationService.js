@@ -30,7 +30,7 @@ export async function registerUser(userToRegister) {
 
     return {
       message: "userRegistered",
-      data: generateToken(userToRegister),
+      data: returnUserWithToken(userToRegister),
     };
   } else {
     return { message: "userAlreadyExists" };
@@ -51,7 +51,7 @@ export async function logInUser(userToLogIn) {
     if (passwordsMatch) {
       return {
         message: "userAuthenticated",
-        data: generateToken(registeredUser),
+        data: returnUserWithToken(registeredUser),
       };
     } else {
       return { message: "incorrectCredentials" };
@@ -71,23 +71,15 @@ function formatDate(date) {
   return `${month}/${day}/${year}`;
 }
 
-function generateToken(user) {
+function returnUserWithToken(user) {
   const JWT_SECRET = fs.readFileSync("jwt.txt", {
     encoding: "utf8",
   });
 
-  const token = jwt.sign(
-    {
-      id: user.user_id,
-      email: user.user_email,
-      firstName: user.user_first_name,
-      lastName: user.user_last_name,
-      birthDate: user.user_birth_date,
-      registrationDate: user.user_registration_date,
-    },
-    JWT_SECRET
-  );
-  return token;
+  const token = jwt.sign({ id: user.user_id }, JWT_SECRET, { expiresIn: "1d" });
+  delete user.user_password;
+  user.user_token = token;
+  return user;
 }
 
 /* END HELPER FUNCTIONS */

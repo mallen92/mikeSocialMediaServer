@@ -32,7 +32,7 @@ router.post("/register", validateRegistration, async (req, res) => {
 
     switch (response.message) {
       case "userRegistered":
-        res.status(200).json({ data: response.data });
+        res.status(200).json(response.data);
         break;
       case "userAlreadyExists":
         res
@@ -57,7 +57,7 @@ router.post("/login", validateLogin, async (req, res) => {
 
     switch (response.message) {
       case "userAuthenticated":
-        res.status(200).json({ data: response.data });
+        res.status(200).json(response.data);
         break;
       case "incorrectCredentials":
         res.status(400).json({ error: "Incorrect email or password." });
