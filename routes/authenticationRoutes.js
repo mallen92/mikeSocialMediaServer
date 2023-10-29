@@ -15,10 +15,10 @@ const logger = createLogger({
 
 const validateLogin = (req, res, next) => {
   if (!req.body.email || req.body.email.trim() === "") {
-    res.status(400).json({ error: "No email address was sent." });
+    res.status(400).json({ error: "Please enter an email." });
   } else {
     if (!req.body.password || req.body.password.trim() === "") {
-      res.status(400).json({ error: "No password was sent." });
+      res.status(400).json({ error: "Please enter a password." });
     } else {
       next();
     }
