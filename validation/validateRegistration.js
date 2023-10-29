@@ -6,41 +6,47 @@ export default function validateRegistration(req, res, next) {
   const userEmail = req.body.email;
 
   if (!userEmail || userEmail.trim() === "") {
-    res.status(400).json({ error: "No email address was sent." });
+    res.status(400).json({ message: "No email address was sent." });
   } else {
     /* An email was sent, so validate that it is correctly formatted. */
     if (!isEmailFormatValid(userEmail)) {
-      res.status(400).json({ error: "Email address has invalid format." });
+      res.status(400).json({ message: "Email address has invalid format." });
     } else {
       const userPassword = req.body.password;
 
       if (!userPassword || userPassword.trim() === "") {
-        res.status(400).json({ error: "No password was sent." });
+        res.status(400).json({ message: "No password was sent." });
       } else {
         if (userPassword.includes(" ")) {
-          res.status(400).json({ error: "Passwords cannot contain spaces." });
+          res.status(400).json({ message: "Passwords cannot contain spaces." });
         } else {
           const userFirstName = req.body.firstName;
 
           if (!userFirstName || userFirstName.trim() === "") {
-            res.status(400).json({ error: "User's first name was not sent." });
+            res
+              .status(400)
+              .json({ message: "User's first name was not sent." });
           } else {
             const userLastName = req.body.lastName;
 
             if (!userLastName || userLastName.trim() === "") {
-              res.status(400).json({ error: "User's last name was not sent." });
+              res
+                .status(400)
+                .json({ message: "User's last name was not sent." });
             } else {
               const userBirthDate = req.body.birthDate;
 
               if (!userBirthDate || userBirthDate.trim() === "") {
                 res
                   .status(400)
-                  .json({ error: "User's birth date was not sent." });
+                  .json({ message: "User's birth date was not sent." });
               } else {
                 if (!moment(userBirthDate).isValid()) {
                   res
                     .status(400)
-                    .json({ error: "User's birth date is not a valid date." });
+                    .json({
+                      message: "User's birth date is not a valid date.",
+                    });
                 } else {
                   const today = moment();
                   const duration = moment.duration(
@@ -51,7 +57,9 @@ export default function validateRegistration(req, res, next) {
                   if (age < 13) {
                     res
                       .status(400)
-                      .json({ error: "User is not at least 13 years of age." });
+                      .json({
+                        message: "User is not at least 13 years of age.",
+                      });
                   } else {
                     next();
                   }
