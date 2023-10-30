@@ -1,21 +1,18 @@
 import moment from "moment";
 
 export default function validateRegistration(req, res, next) {
-  /* We cannot use the trim() method here because if
-  the email is null, then trim() will throw an error.*/
   const userEmail = req.body.email;
 
   if (!userEmail || userEmail.trim() === "") {
-    res.status(400).json({ message: "No email address was sent." });
+    res.status(400).json({ message: "Please enter an email." });
   } else {
-    /* An email was sent, so validate that it is correctly formatted. */
     if (!isEmailFormatValid(userEmail)) {
       res.status(400).json({ message: "Email address has invalid format." });
     } else {
       const userPassword = req.body.password;
 
       if (!userPassword || userPassword.trim() === "") {
-        res.status(400).json({ message: "No password was sent." });
+        res.status(400).json({ message: "Please enter a password." });
       } else {
         if (userPassword.includes(" ")) {
           res.status(400).json({ message: "Passwords cannot contain spaces." });
@@ -23,45 +20,52 @@ export default function validateRegistration(req, res, next) {
           const userFirstName = req.body.firstName;
 
           if (!userFirstName || userFirstName.trim() === "") {
-            res
-              .status(400)
-              .json({ message: "User's first name was not sent." });
+            res.status(400).json({ message: "Please enter a first name." });
           } else {
-            const userLastName = req.body.lastName;
-
-            if (!userLastName || userLastName.trim() === "") {
-              res
-                .status(400)
-                .json({ message: "User's last name was not sent." });
+            if (!isNameFormatValid(userFirstName)) {
+              res.status(400).json({
+                message:
+                  "Name can only contain letters, spaces, and dashes (-)",
+              });
             } else {
-              const userBirthDate = req.body.birthDate;
+              const userLastName = req.body.lastName;
 
-              if (!userBirthDate || userBirthDate.trim() === "") {
-                res
-                  .status(400)
-                  .json({ message: "User's birth date was not sent." });
+              if (!userLastName || userLastName.trim() === "") {
+                res.status(400).json({ message: "Please enter a last name." });
               } else {
-                if (!moment(userBirthDate).isValid()) {
-                  res
-                    .status(400)
-                    .json({
-                      message: "User's birth date is not a valid date.",
-                    });
+                if (!isNameFormatValid(userLastName)) {
+                  res.status(400).json({
+                    message:
+                      "Name can only contain letters, spaces, and dashes (-)",
+                  });
                 } else {
-                  const today = moment();
-                  const duration = moment.duration(
-                    today.diff(moment(userBirthDate))
-                  );
-                  const age = duration._data.years;
+                  const userBirthDate = req.body.birthDate;
 
-                  if (age < 13) {
+                  if (!userBirthDate || userBirthDate.trim() === "") {
                     res
                       .status(400)
-                      .json({
-                        message: "User is not at least 13 years of age.",
-                      });
+                      .json({ message: "Please enter your date of birth." });
                   } else {
-                    next();
+                    if (!moment(userBirthDate).isValid()) {
+                      res.status(400).json({
+                        message: "Birth date is not a valid date.",
+                      });
+                    } else {
+                      const today = moment();
+                      const duration = moment.duration(
+                        today.diff(moment(userBirthDate))
+                      );
+                      const age = duration._data.years;
+
+                      if (age < 13) {
+                        res.status(400).json({
+                          message:
+                            "You must be at least 13 years of age to sign up.",
+                        });
+                      } else {
+                        next();
+                      }
+                    }
                   }
                 }
               }
@@ -79,6 +83,13 @@ function isEmailFormatValid(email) {
   const pattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
   if (pattern.test(email.trim())) return true;
+  else return false;
+}
+
+function isNameFormatValid(name) {
+  const pattern = /^[a-zA-Z\s-]+$/;
+
+  if (pattern.test(name.trim())) return true;
   else return false;
 }
 
