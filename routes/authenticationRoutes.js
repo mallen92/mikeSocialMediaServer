@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createLogger, format, transports } from "winston";
 import * as authenticationService from "../services/authenticationService.js";
-import validateRegistration from "../validation/validateRegistration.js";
+import validateSignup from "../validation/validateSignup.js";
 
 const router = Router();
 const { combine, timestamp, prettyPrint } = format;
@@ -25,10 +25,10 @@ const validateLogin = (req, res, next) => {
   }
 };
 
-router.post("/register", validateRegistration, async (req, res) => {
+router.post("/signup", validateSignup, async (req, res) => {
   try {
     const newUserObj = req.body;
-    const response = await authenticationService.registerUser(newUserObj);
+    const response = await authenticationService.signUpUser(newUserObj);
 
     switch (response.message) {
       case "userRegistered":

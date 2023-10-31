@@ -1,6 +1,6 @@
 import moment from "moment";
 
-export default function validateRegistration(req, res, next) {
+export default function validateSignup(req, res, next) {
   const userEmail = req.body.email;
 
   if (!userEmail || userEmail.trim() === "") {
@@ -14,8 +14,8 @@ export default function validateRegistration(req, res, next) {
       if (!userPassword || userPassword.trim() === "") {
         res.status(400).json({ message: "Please enter a password." });
       } else {
-        if (userPassword.includes(" ")) {
-          res.status(400).json({ message: "Passwords cannot contain spaces." });
+        if (!isPasswordFormatValid(userPassword)) {
+          res.status(400).json({ message: "Password has invalid format." });
         } else {
           const userFirstName = req.body.firstName;
 
@@ -24,8 +24,7 @@ export default function validateRegistration(req, res, next) {
           } else {
             if (!isNameFormatValid(userFirstName)) {
               res.status(400).json({
-                message:
-                  "Name can only contain letters, spaces, and dashes (-)",
+                message: "Name has invalid format.",
               });
             } else {
               const userLastName = req.body.lastName;
@@ -35,8 +34,7 @@ export default function validateRegistration(req, res, next) {
               } else {
                 if (!isNameFormatValid(userLastName)) {
                   res.status(400).json({
-                    message:
-                      "Name can only contain letters, spaces, and dashes (-)",
+                    message: "Name has invalid format.",
                   });
                 } else {
                   const userBirthDate = req.body.birthDate;
@@ -77,7 +75,7 @@ export default function validateRegistration(req, res, next) {
   }
 }
 
-/* HELPER FUNCTIONS */
+/* FORMAT VALIDATORS */
 
 function isEmailFormatValid(email) {
   const pattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -86,11 +84,19 @@ function isEmailFormatValid(email) {
   else return false;
 }
 
+function isPasswordFormatValid(password) {
+  const pattern =
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9])(?!.*\s)(?!.*\s$).{10,}$/;
+
+  if (pattern.test(password.trim())) return true;
+  else return false;
+}
+
 function isNameFormatValid(name) {
-  const pattern = /^[a-zA-Z\s-]+$/;
+  const pattern = /^[a-zA-Z][a-zA-Z -]{1,}$/;
 
   if (pattern.test(name.trim())) return true;
   else return false;
 }
 
-/* END HELPER FUNCTIONS */
+/* END FORMAT VALIDATORS */

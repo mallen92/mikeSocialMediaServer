@@ -5,19 +5,19 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import * as userDao from "../repository/userDao.js";
 
-export async function registerUser(userToRegister) {
-  for (const property in userToRegister) {
-    userToRegister[property] = userToRegister[property].trim();
+export async function signUpUser(userToSignUp) {
+  for (const property in userToSignUp) {
+    userToSignUp[property] = userToSignUp[property].trim();
   }
 
-  const { email, password, firstName, lastName, birthDate } = userToRegister;
+  const { email, password, firstName, lastName, birthDate } = userToSignUp;
 
   const existingUser = await userDao.getUserByEmail(email);
   if (existingUser.Items.length === 0) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    userToRegister = {
+    userToSignUp = {
       user_id: uuidv4(),
       user_email: email,
       user_password: hashedPassword,
@@ -26,11 +26,11 @@ export async function registerUser(userToRegister) {
       user_birth_date: formatDate(birthDate),
       user_registration_date: formatDate(moment()),
     };
-    await userDao.putUser(userToRegister);
+    await userDao.putUser(userToSignUp);
 
     return {
       message: "userRegistered",
-      data: returnUserWithToken(userToRegister),
+      data: returnUserWithToken(userToSignUp),
     };
   } else {
     return { message: "userAlreadyExists" };
