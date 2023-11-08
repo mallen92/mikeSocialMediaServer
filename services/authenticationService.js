@@ -1,10 +1,9 @@
-import fs from "fs";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import * as userDao from "../repository/userDao.js";
-import * as imageBao from "../repository/imageBao.js";
+import * as imageService from "../services/imageService.js";
 
 export async function signUpUser(userToSignUp) {
   for (const property in userToSignUp) {
@@ -74,18 +73,16 @@ function formatDate(date) {
 }
 
 async function returnUser(user) {
-  const JWT_SECRET = fs.readFileSync("jwt.txt", {
-    encoding: "utf8",
+  const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
   });
-  const token = jwt.sign({ id: user.user_id }, JWT_SECRET, { expiresIn: "1d" });
   user.user_token = token;
 
   delete user.user_password;
 
-  const imgObj = await imageBao.getUserProfilePic(user.user_profile_pic);
-  const byteArray = await imgObj.Body.transformToByteArray();
-  const byte64 = Buffer.from(byteArray).toString("base64");
-  user.user_profile_pic = `data:image/png;base64,${byte64}`;
+  user.user_profile_pic = await imageService.getUserProfilePic(
+    user.user_profile_pic
+  );
 
   return user;
 }

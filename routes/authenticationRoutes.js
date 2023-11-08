@@ -1,29 +1,10 @@
 import { Router } from "express";
-import { createLogger, format, transports } from "winston";
+import { logger } from "../logging/logger.js";
 import * as authenticationService from "../services/authenticationService.js";
-import validateSignup from "../validation/validateSignup.js";
+import validateSignup from "../middleware/validateSignup.js";
+import validateLogin from "../middleware/validateLogin.js";
 
 const router = Router();
-const { combine, timestamp, prettyPrint } = format;
-const logger = createLogger({
-  format: combine(
-    timestamp({ format: "MM/DD/YYYY hh:mm:ss A" }),
-    prettyPrint()
-  ),
-  transports: [new transports.File({ filename: "error.log" })],
-});
-
-const validateLogin = (req, res, next) => {
-  if (!req.body.email || req.body.email.trim() === "") {
-    res.status(400).json({ message: "Please enter an email." });
-  } else {
-    if (!req.body.password || req.body.password.trim() === "") {
-      res.status(400).json({ message: "Please enter a password." });
-    } else {
-      next();
-    }
-  }
-};
 
 router.post("/signup", validateSignup, async (req, res) => {
   try {

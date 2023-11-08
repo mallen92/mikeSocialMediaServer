@@ -3,6 +3,7 @@ import {
   DynamoDBDocumentClient,
   QueryCommand,
   PutCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
@@ -44,6 +45,19 @@ export async function putUser(user) {
       user_birth_date,
       user_profile_pic,
       user_registration_date,
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+export async function updateUserProfilePicFilename(user, filename) {
+  const command = new UpdateCommand({
+    TableName: "user",
+    Key: { user_id: user },
+    UpdateExpression: "SET user_profile_pic = :file",
+    ExpressionAttributeValues: {
+      ":file": filename,
     },
   });
 
