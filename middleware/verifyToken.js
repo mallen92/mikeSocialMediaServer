@@ -1,3 +1,4 @@
+import "dotenv/config";
 import jwt from "jsonwebtoken";
 import { logger } from "../logging/logger.js";
 
@@ -6,7 +7,7 @@ export default function verifyToken(req, res, next) {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(403).json({ message: "Access Denied " });
+      return res.status(403).json({ message: "Access denied" });
     } else if (authHeader.startsWith("Bearer ")) {
       const token = req.headers.authorization.split(" ")[1];
       const verified = jwt.verify(token, process.env.JWT_SECRET);
@@ -14,7 +15,17 @@ export default function verifyToken(req, res, next) {
       next();
     }
   } catch (error) {
-    res.status(500).json({ message: "SERVER ERROR" });
-    logger.error({ message: error });
+    switch (error.message) {
+      case "jwt expired":
+        res
+          .status(403)
+          .json({ message: "Your session has expired. Please log in." });
+        logger.error({ message: error });
+        break;
+      default:
+        res.status(403).json({ message: "Access denied" });
+        logger.error({ message: error });
+        break;
+    }
   }
 }
