@@ -1,3 +1,4 @@
+import "dotenv/config";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import moment from "moment";
@@ -24,7 +25,7 @@ export async function signUpUser(userToSignUp) {
       user_first_name: firstName,
       user_last_name: lastName,
       user_birth_date: formatDate(birthDate),
-      user_profile_pic: "default_pic.png",
+      user_profile_pic: process.env.DEFAULT_PROF_PIC,
       user_registration_date: formatDate(moment()),
     };
     await userDao.putUser(userToSignUp);

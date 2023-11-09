@@ -1,6 +1,7 @@
 import "dotenv/config";
 import fs from "fs";
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -29,8 +30,17 @@ export async function uploadImage(fileURL, filename) {
   return await client.send(command);
 }
 
-export async function getUserProfilePic(Key) {
+export async function getImage(Key) {
   const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key,
+  });
+
+  return await client.send(command);
+}
+
+export async function deleteImage(Key) {
+  const command = new DeleteObjectCommand({
     Bucket: bucketName,
     Key,
   });

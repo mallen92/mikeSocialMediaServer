@@ -4,6 +4,7 @@ import {
   QueryCommand,
   PutCommand,
   UpdateCommand,
+  GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
@@ -59,7 +60,18 @@ export async function updateUserProfilePicFilename(user, filename) {
     ExpressionAttributeValues: {
       ":file": filename,
     },
+    ReturnValues: "UPDATED_OLD",
   });
 
   return await docClient.send(command);
 }
+
+// export async function getUserProfilePicFilename(user) {
+//   const command = new GetCommand({
+//     TableName: "user",
+//     Key: { user_id: user },
+//     ProjectionExpression: "user_profile_pic",
+//   });
+
+//   return await docClient.send(command);
+// }
