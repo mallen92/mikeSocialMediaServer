@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use("/auth", authenticationRoutes);
-app.use("/user", userRoutes);
+app.use("/users", userRoutes);
 app.use("/images", imageRoutes);
 
 app.listen(PORT, () => {

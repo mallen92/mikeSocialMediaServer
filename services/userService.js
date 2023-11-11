@@ -10,5 +10,5 @@ export async function getUser(userId) {
     user.user_profile_pic
   );
 
-  return { data: user };
+  return { message: "User retrieved", data: user };
 }
