@@ -1,6 +1,5 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
-import { logger } from "../logging/logger.js";
 
 export default function verifyToken(req, res, next) {
   try {
@@ -20,11 +19,9 @@ export default function verifyToken(req, res, next) {
         res
           .status(403)
           .json({ message: "Your session has expired. Please log in." });
-        logger.error({ message: error });
         break;
       default:
         res.status(403).json({ message: "Access denied" });
-        logger.error({ message: error });
         break;
     }
   }

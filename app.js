@@ -2,6 +2,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 import authenticationRoutes from "./routes/authenticationRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import imageRoutes from "./routes/imageRoutes.js";
 
 const app = express();
@@ -10,6 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use("/auth", authenticationRoutes);
+app.use("/user", userRoutes);
 app.use("/images", imageRoutes);
 
 app.listen(PORT, () => {

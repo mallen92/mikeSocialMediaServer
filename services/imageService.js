@@ -13,10 +13,8 @@ export async function updateUserProfilePic(user, multerFile) {
   await userDao.updateUserProfilePicFilename(user, filename);
   await imageBao.uploadImage(fileURL, filename);
 
-  // Delete image out of file system
   fs.unlinkSync(fileURL);
 
-  // Retrieve image from S3
   const data = await getUserProfilePic(filename);
   return { message: "uploadSuccess", data };
 }
@@ -30,18 +28,13 @@ export async function getUserProfilePic(filename) {
 }
 
 export async function deleteUserProfilePic(user) {
-  /* Update the user's profile pic filename in the database 
-  THe process also returns the old filename, which we delete*/
+  const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
   const response = await userDao.updateUserProfilePicFilename(
     user,
-    process.env.DEFAULT_PROF_PIC
+    defaultPicFilename
   );
-
-  /* Delete the user's image from the S3 */
   await imageBao.deleteImage(response.Attributes.user_profile_pic);
-
-  /* Return the default profile pic back to the client */
-  const data = await getUserProfilePic(process.env.DEFAULT_PROF_PIC);
+  const data = await getUserProfilePic(defaultPicFilename);
 
   return { message: "deleteSuccess", data };
 }

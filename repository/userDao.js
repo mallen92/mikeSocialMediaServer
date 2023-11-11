@@ -10,14 +10,23 @@ import {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+export async function getUserById(id) {
+  const command = new GetCommand({
+    TableName: "user",
+    Key: { user_id: id },
+  });
+
+  return await docClient.send(command);
+}
+
 export async function getUserByEmail(email) {
   const command = new QueryCommand({
     TableName: "user",
     IndexName: "user_email_index",
-    KeyConditionExpression: "user_email = :email",
     ExpressionAttributeValues: {
       ":email": email,
     },
+    KeyConditionExpression: "user_email = :email",
   });
 
   return await docClient.send(command);
@@ -65,13 +74,3 @@ export async function updateUserProfilePicFilename(user, filename) {
 
   return await docClient.send(command);
 }
-
-// export async function getUserProfilePicFilename(user) {
-//   const command = new GetCommand({
-//     TableName: "user",
-//     Key: { user_id: user },
-//     ProjectionExpression: "user_profile_pic",
-//   });
-
-//   return await docClient.send(command);
-// }
