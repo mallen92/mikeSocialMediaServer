@@ -1,11 +1,10 @@
 import { Router } from "express";
-import verifyToken from "../middleware/verifyToken.js";
 import * as userService from "../services/userService.js";
 import { logger } from "../logging/logger.js";
 
 const router = Router();
 
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", async (req, res) => {
   const userId = req.query.id;
 
   try {
