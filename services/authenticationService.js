@@ -80,6 +80,9 @@ async function returnUser(user) {
   user.user_token = token;
 
   delete user.user_password;
+  delete user.user_birth_date;
+  delete user.user_registration_date;
+  delete user.user_email;
 
   user.user_profile_pic = await imageService.getUserProfilePic(
     user.user_profile_pic
