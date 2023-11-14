@@ -25,9 +25,11 @@ export async function signUpUser(userToSignUp) {
       user_first_name: firstName,
       user_last_name: lastName,
       user_birth_date: formatDate(birthDate),
+      user_signup_date: formatDate(moment()),
       user_profile_pic: process.env.DEFAULT_PROF_PIC,
       user_friends: [],
-      user_registration_date: formatDate(moment()),
+      friend_requests_in: [],
+      friend_requests_out: [],
     };
     await userDao.putUser(userToSignUp);
 
