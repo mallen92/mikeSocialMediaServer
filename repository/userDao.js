@@ -41,6 +41,7 @@ export async function putUser(user) {
     user_last_name,
     user_birth_date,
     user_profile_pic,
+    user_friends,
     user_registration_date,
   } = user;
 
@@ -54,6 +55,7 @@ export async function putUser(user) {
       user_last_name,
       user_birth_date,
       user_profile_pic,
+      user_friends,
       user_registration_date,
     },
   });
@@ -74,3 +76,10 @@ export async function updateUserProfilePicFilename(user, filename) {
 
   return await docClient.send(command);
 }
+
+// export async function addFriendToUser(user) {
+//   const command = new UpdateCommand({
+//     TableName: "user",
+//     Key: { user_id: user },
+//   });
+// }
