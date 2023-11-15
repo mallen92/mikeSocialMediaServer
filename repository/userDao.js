@@ -40,9 +40,11 @@ export async function putUser(user) {
     user_first_name,
     user_last_name,
     user_birth_date,
+    user_registration_date,
     user_profile_pic,
     user_friends,
-    user_registration_date,
+    friend_requests_out,
+    friend_requests_in,
   } = user;
 
   const command = new PutCommand({
@@ -54,9 +56,11 @@ export async function putUser(user) {
       user_first_name,
       user_last_name,
       user_birth_date,
+      user_registration_date,
       user_profile_pic,
       user_friends,
-      user_registration_date,
+      friend_requests_out,
+      friend_requests_in,
     },
   });
 
@@ -77,9 +81,30 @@ export async function updateUserProfilePicFilename(user, filename) {
   return await docClient.send(command);
 }
 
-// export async function addFriendToUser(user) {
-//   const command = new UpdateCommand({
-//     TableName: "user",
-//     Key: { user_id: user },
-//   });
-// }
+export async function addFriendRequestOut(user, userToAdd) {
+  const command = new UpdateCommand({
+    TableName: "user",
+    Key: { user_id: user },
+    UpdateExpression:
+      "SET friend_requests_out = list_append(friend_requests_out, :user)",
+    ExpressionAttributeValues: {
+      ":user": [userToAdd],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+export async function addFriendRequestIn(user, userToAdd) {
+  const command = new UpdateCommand({
+    TableName: "user",
+    Key: { user_id: user },
+    UpdateExpression:
+      "SET friend_requests_in = list_append(friend_requests_in, :user)",
+    ExpressionAttributeValues: {
+      ":user": [userToAdd],
+    },
+  });
+
+  return await docClient.send(command);
+}

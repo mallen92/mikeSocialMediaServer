@@ -12,3 +12,12 @@ export async function getUser(userId) {
 
   return { message: "User retrieved", data: user };
 }
+
+export async function addFriendRequest(userId, userToAddId) {
+  await userDao.addFriendRequestOut(userId, userToAddId);
+  await userDao.addFriendRequestIn(userToAddId, userId);
+
+  return {
+    message: "Request added",
+  };
+}
