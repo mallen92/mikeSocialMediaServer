@@ -80,31 +80,3 @@ export async function updateUserProfilePicFilename(user, filename) {
 
   return await docClient.send(command);
 }
-
-export async function addFriendRequestOut(user, userToAdd) {
-  const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    UpdateExpression:
-      "SET friend_requests_out = list_append(friend_requests_out, :user)",
-    ExpressionAttributeValues: {
-      ":user": [userToAdd],
-    },
-  });
-
-  return await docClient.send(command);
-}
-
-export async function addFriendRequestIn(user, userToAdd) {
-  const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    UpdateExpression:
-      "SET friend_requests_in = list_append(friend_requests_in, :user)",
-    ExpressionAttributeValues: {
-      ":user": [userToAdd],
-    },
-  });
-
-  return await docClient.send(command);
-}

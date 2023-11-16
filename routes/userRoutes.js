@@ -38,4 +38,20 @@ router.put("/request", verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/request", verifyToken, async (req, res) => {
+  const userId = req.user;
+  const reqUserId = req.query.id;
+
+  try {
+    const reponse = await userService.deleteFriendRequest(userId, reqUserId);
+    if (reponse.message === "Request deleted")
+      res.status(200).json({ message: "Friend request deleted!" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
+    logger.error({ message: error });
+  }
+});
+
 export default router;
