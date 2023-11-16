@@ -38,4 +38,67 @@ router.put("/request", verifyToken, async (req, res) => {
   }
 });
 
+router.delete("/request/:action", verifyToken, async (req, res) => {
+  const userId = req.user;
+  const reqUserId = req.query.id;
+  const action = req.params.action;
+
+  try {
+    if (action === "revoke") {
+      const response = await userService.deleteFriendRequest(userId, reqUserId);
+      if (response.message === "Request deleted") {
+        res.status(200).json({
+          message: "Friend request cancelled",
+          index: response.index,
+        });
+      }
+    } else if (action === "reject") {
+      const response = await userService.deleteFriendRequest(reqUserId, userId);
+      if (response.message === "Request deleted") {
+        res.status(200).json({
+          message: "Friend request rejected",
+          index: response.index,
+        });
+      }
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
+    logger.error({ message: error });
+  }
+});
+
+router.post("/friend", verifyToken, async (req, res) => {
+  const userId = req.user;
+  const reqUserId = req.query.id;
+
+  try {
+    const response = await userService.addFriend(userId, reqUserId);
+    if (response.message === "Friend added")
+      res.status(200).json({ deletedRequestIndex: response.index });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
+    logger.error({ message: error });
+  }
+});
+
+router.delete("/friend", verifyToken, async (req, res) => {
+  const userId = req.user;
+  const reqUserId = req.query.id;
+
+  try {
+    const response = await userService.removeFriend(userId, reqUserId);
+    if (response.message === "Friend removed")
+      res.status(200).json({ removedFriendIndex: response.index });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
+    logger.error({ message: error });
+  }
+});
+
 export default router;
