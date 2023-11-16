@@ -38,16 +38,28 @@ router.put("/request", verifyToken, async (req, res) => {
   }
 });
 
-router.delete("/request", verifyToken, async (req, res) => {
+router.delete("/request/:action", verifyToken, async (req, res) => {
   const userId = req.user;
   const reqUserId = req.query.id;
+  const action = req.params.action;
 
   try {
-    const response = await userService.deleteFriendRequest(userId, reqUserId);
-    if (response.message === "Request deleted") {
-      res
-        .status(200)
-        .json({ message: "Friend request deleted!", index: response.index });
+    if (action === "revoke") {
+      const response = await userService.deleteFriendRequest(userId, reqUserId);
+      if (response.message === "Request deleted") {
+        res.status(200).json({
+          message: "Friend request cancelled",
+          index: response.index,
+        });
+      }
+    } else if (action === "reject") {
+      const response = await userService.deleteFriendRequest(reqUserId, userId);
+      if (response.message === "Request deleted") {
+        res.status(200).json({
+          message: "Friend request rejected",
+          index: response.index,
+        });
+      }
     }
   } catch (error) {
     res
