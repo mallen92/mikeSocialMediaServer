@@ -36,5 +36,6 @@ export async function deleteFriendRequest(userId, userToRemoveId) {
 
   return {
     message: "Request deleted",
+    index: userToRemoveIndex,
   };
 }

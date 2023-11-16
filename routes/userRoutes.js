@@ -43,9 +43,12 @@ router.delete("/request", verifyToken, async (req, res) => {
   const reqUserId = req.query.id;
 
   try {
-    const reponse = await userService.deleteFriendRequest(userId, reqUserId);
-    if (reponse.message === "Request deleted")
-      res.status(200).json({ message: "Friend request deleted!" });
+    const response = await userService.deleteFriendRequest(userId, reqUserId);
+    if (response.message === "Request deleted") {
+      res
+        .status(200)
+        .json({ message: "Friend request deleted!", index: response.index });
+    }
   } catch (error) {
     res
       .status(500)
