@@ -22,8 +22,8 @@ export async function updateUserProfilePic(user, multerFile) {
   if (oldProfilePicFilename !== defaultPicFilename)
     await imageBao.deleteImage(oldProfilePicFilename);
 
-  const data = await getUserProfilePic(filename);
-  return { message: "uploadSuccess", data };
+  const picUrl = await getUserProfilePic(filename);
+  return { message: "uploadSuccess", picUrl, picFilename: filename };
 }
 
 export async function getUserProfilePic(filename) {
@@ -39,8 +39,13 @@ export async function deleteUserProfilePic(user) {
     user,
     defaultPicFilename
   );
-  await imageBao.deleteImage(response.Attributes.user_profile_pic);
-  const data = await getUserProfilePic(defaultPicFilename);
 
-  return { message: "deleteSuccess", data };
+  if (response.Attributes.user_profile_pic === defaultPicFilename) {
+    return { message: "deleteError" };
+  }
+
+  await imageBao.deleteImage(response.Attributes.user_profile_pic);
+  const picUrl = await getUserProfilePic(defaultPicFilename);
+
+  return { message: "deleteSuccess", picUrl, picFilename: defaultPicFilename };
 }

@@ -87,7 +87,7 @@ async function returnUser(user) {
   delete user.user_registration_date;
   delete user.user_email;
 
-  user.user_profile_pic = await imageService.getUserProfilePic(
+  user.profile_pic_url = await imageService.getUserProfilePic(
     user.user_profile_pic
   );
 

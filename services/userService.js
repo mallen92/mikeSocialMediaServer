@@ -8,9 +8,10 @@ export async function getUser(userId) {
   const user = response.Item;
 
   delete user.user_password;
-  user.user_profile_pic = await imageService.getUserProfilePic(
+  user.profile_pic_url = await imageService.getUserProfilePic(
     user.user_profile_pic
   );
+  delete user.user_profile_pic;
 
   return { message: "User retrieved", data: user };
 }
