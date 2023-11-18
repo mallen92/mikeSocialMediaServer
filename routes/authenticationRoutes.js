@@ -26,7 +26,9 @@ router.post("/signup", validateSignup, async (req, res) => {
         logger.error({ message: error });
     }
   } catch (error) {
-    res.status(500).json({ message: "SERVER ERROR" });
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
     logger.error({ message: error });
   }
 });
@@ -54,7 +56,9 @@ router.post("/login", validateLogin, async (req, res) => {
         logger.error({ message: error });
     }
   } catch (error) {
-    res.status(500).json({ message: "SERVER ERROR" });
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
     logger.error({ message: error });
   }
 });
