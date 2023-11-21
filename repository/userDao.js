@@ -4,29 +4,20 @@ import {
   QueryCommand,
   PutCommand,
   UpdateCommand,
-  GetCommand,
+  BatchGetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export async function getUserById(id) {
-  const command = new GetCommand({
-    TableName: "user",
-    Key: { user_id: id },
-  });
-
-  return await docClient.send(command);
-}
-
-export async function getUserByEmail(email) {
+export async function getUser(email) {
   const command = new QueryCommand({
-    TableName: "user",
-    IndexName: "user_email_index",
+    TableName: "users",
+    IndexName: "email-index",
     ExpressionAttributeValues: {
       ":email": email,
     },
-    KeyConditionExpression: "user_email = :email",
+    KeyConditionExpression: "email = :email",
   });
 
   return await docClient.send(command);
@@ -34,31 +25,29 @@ export async function getUserByEmail(email) {
 
 export async function putUser(user) {
   const {
-    user_id,
-    user_email,
-    user_password,
-    user_first_name,
-    user_last_name,
-    user_birth_date,
-    user_signup_date,
-    user_profile_pic,
-    user_friends,
+    id,
+    email,
+    password,
+    full_name,
+    birth_date,
+    signup_date,
+    pic_filename,
+    friends,
     friend_requests_out,
     friend_requests_in,
   } = user;
 
   const command = new PutCommand({
-    TableName: "user",
+    TableName: "users",
     Item: {
-      user_id,
-      user_email,
-      user_password,
-      user_first_name,
-      user_last_name,
-      user_birth_date,
-      user_signup_date,
-      user_profile_pic,
-      user_friends,
+      id,
+      email,
+      password,
+      full_name,
+      birth_date,
+      signup_date,
+      pic_filename,
+      friends,
       friend_requests_out,
       friend_requests_in,
     },
@@ -67,15 +56,31 @@ export async function putUser(user) {
   return await docClient.send(command);
 }
 
-export async function updateUserProfilePicFilename(user, filename) {
+export async function updatePicFilename(userId, filename) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    UpdateExpression: "SET user_profile_pic = :file",
+    TableName: "users",
+    Key: { id: userId },
+    UpdateExpression: "SET pic_filename = :filename",
     ExpressionAttributeValues: {
-      ":file": filename,
+      ":filename": filename,
     },
     ReturnValues: "UPDATED_OLD",
+  });
+
+  return await docClient.send(command);
+}
+
+export async function getUserIntroInfo(Keys) {
+  const command = new BatchGetCommand({
+    RequestItems: {
+      users: {
+        Keys,
+        ProjectionExpression: "id, #name, profile_pic",
+        ExpressionAttributeNames: {
+          "#name": "name",
+        },
+      },
+    },
   });
 
   return await docClient.send(command);

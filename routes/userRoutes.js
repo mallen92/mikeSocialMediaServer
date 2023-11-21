@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
   const userId = req.query.id;
 
   try {
-    const response = await userService.getUser(userId);
+    const response = await userService.getClientUser(userId);
     if (response.message === "User retrieved")
       res.status(200).json(response.data);
     else
@@ -69,7 +69,25 @@ router.delete("/request/:action", verifyToken, async (req, res) => {
   }
 });
 
-router.post("/friend", verifyToken, async (req, res) => {
+router.get("/friends", async (req, res) => {
+  const reqUserId = req.query.id;
+
+  try {
+    const response = await userService.getFriends(reqUserId);
+    if (response.message === "Friends retrieved")
+      res.status(200).json({
+        reqUserName: response.reqUserName,
+        reqUserFriends: response.reqUserFriends,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Server error. Please contact user support." });
+    logger.error({ message: error });
+  }
+});
+
+router.post("/friends", verifyToken, async (req, res) => {
   const userId = req.user;
   const reqUserId = req.query.id;
 
@@ -85,7 +103,7 @@ router.post("/friend", verifyToken, async (req, res) => {
   }
 });
 
-router.delete("/friend", verifyToken, async (req, res) => {
+router.delete("/friends", verifyToken, async (req, res) => {
   const userId = req.user;
   const reqUserId = req.query.id;
 

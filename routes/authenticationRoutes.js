@@ -8,8 +8,8 @@ const router = Router();
 
 router.post("/signup", validateSignup, async (req, res) => {
   try {
-    const newUserObj = req.body;
-    const response = await authenticationService.signUpUser(newUserObj);
+    const signupFormData = req.body;
+    const response = await authenticationService.signUpUser(signupFormData);
 
     switch (response.message) {
       case "userRegistered":
