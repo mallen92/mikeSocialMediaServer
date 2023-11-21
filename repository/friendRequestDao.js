@@ -8,20 +8,20 @@ import {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export async function getFriendRequestsOut(user) {
+export async function getFriendRequestsOut(id) {
   const command = new GetCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id },
     ProjectionExpression: "friend_requests_out",
   });
 
   return await docClient.send(command);
 }
 
-export async function getFriendRequestsIn(user) {
+export async function getFriendRequestsIn(id) {
   const command = new GetCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id },
     ProjectionExpression: "friend_requests_in",
   });
 
@@ -30,8 +30,8 @@ export async function getFriendRequestsIn(user) {
 
 export async function addFriendRequestOut(user, userToAdd) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id: user },
     UpdateExpression:
       "SET friend_requests_out = list_append(friend_requests_out, :user)",
     ExpressionAttributeValues: {
@@ -44,8 +44,8 @@ export async function addFriendRequestOut(user, userToAdd) {
 
 export async function addFriendRequestIn(user, userToAdd) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id: user },
     UpdateExpression:
       "SET friend_requests_in = list_append(friend_requests_in, :user)",
     ExpressionAttributeValues: {
@@ -58,8 +58,8 @@ export async function addFriendRequestIn(user, userToAdd) {
 
 export async function deleteFriendRequestOut(user, index) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id: user },
     UpdateExpression: `REMOVE friend_requests_out[${index}]`,
   });
 
@@ -68,8 +68,8 @@ export async function deleteFriendRequestOut(user, index) {
 
 export async function deleteFriendRequestIn(user, index) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
+    TableName: "users",
+    Key: { id: user },
     UpdateExpression: `REMOVE friend_requests_in[${index}]`,
   });
 

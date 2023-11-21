@@ -8,11 +8,14 @@ import {
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export async function getFriends(user) {
+export async function getFriends(id) {
   const command = new GetCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    ProjectionExpression: "user_friends",
+    TableName: "users",
+    Key: { id },
+    ProjectionExpression: "#name, friends",
+    ExpressionAttributeNames: {
+      "#name": "name",
+    },
   });
 
   return await docClient.send(command);
@@ -20,9 +23,9 @@ export async function getFriends(user) {
 
 export async function addFriend(user, userToAdd) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    UpdateExpression: "SET user_friends = list_append(user_friends, :user)",
+    TableName: "users",
+    Key: { id: user },
+    UpdateExpression: "SET friends = list_append(friends, :user)",
     ExpressionAttributeValues: {
       ":user": [userToAdd],
     },
@@ -33,9 +36,9 @@ export async function addFriend(user, userToAdd) {
 
 export async function deleteFriend(user, index) {
   const command = new UpdateCommand({
-    TableName: "user",
-    Key: { user_id: user },
-    UpdateExpression: `REMOVE user_friends[${index}]`,
+    TableName: "users",
+    Key: { id: user },
+    UpdateExpression: `REMOVE friends[${index}]`,
   });
 
   return await docClient.send(command);

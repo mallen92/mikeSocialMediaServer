@@ -1,51 +1,52 @@
-import "dotenv/config";
 import fs from "fs";
 import crypto from "crypto";
+import "dotenv/config";
 import * as userDao from "../repository/userDao.js";
 import * as imageBao from "../repository/imageBao.js";
 
 const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
 
-export async function updateUserProfilePic(user, multerFile) {
+export async function updateUserPic(userId, multerFile) {
   const hash = crypto.randomBytes(10).toString("hex");
-  const filename = `${hash}.jpg`;
+  const newPicFilename = `${hash}.jpg`;
   const fileURL = `./tmp/${filename}`;
   const buffer = multerFile.buffer;
   fs.writeFileSync(fileURL, buffer);
-
-  const response = await userDao.updateUserProfilePicFilename(user, filename);
-  const oldProfilePicFilename = response.Attributes.user_profile_pic;
-  await imageBao.uploadImage(fileURL, filename);
-
+  await imageBao.uploadImage(fileURL, newPicFilename);
   fs.unlinkSync(fileURL);
 
-  if (oldProfilePicFilename !== defaultPicFilename)
-    await imageBao.deleteImage(oldProfilePicFilename);
+  const output = await userDao.updateUserPic(userId, newPicFilename);
+  const oldPicFilename = output.Attributes.pic_filename;
+  if (oldPicFilename !== defaultPicFilename)
+    await imageBao.deleteImage(oldPicFilename);
 
-  const picUrl = await getUserProfilePic(filename);
-  return { message: "uploadSuccess", picUrl, picFilename: filename };
+  const newPicUrl = await getUserPic(newPicFilename);
+  return { message: "uploadSuccess", newPicUrl, newPicFilename };
 }
 
-export async function getUserProfilePic(filename) {
+export async function deleteUserPic(userId) {
+  const output = await userDao.updatePicFilename(userId, defaultPicFilename);
+
+  if (output.Attributes.pic_filename === defaultPicFilename)
+    return { message: "deleteError" };
+
+  await imageBao.deleteImage(output.Attributes.pic_filename);
+  const newPicUrl = await getUserPic(defaultPicFilename);
+
+  return {
+    message: "deleteSuccess",
+    newPicUrl,
+    newPicFilename: defaultPicFilename,
+  };
+}
+
+/* HELPER FUNCTIONS */
+
+export async function getUserPic(filename) {
   const imgObj = await imageBao.getImage(filename);
   const byteArray = await imgObj.Body.transformToByteArray();
   const byte64 = Buffer.from(byteArray).toString("base64");
-
   return `data:image/png;base64,${byte64}`;
 }
 
-export async function deleteUserProfilePic(user) {
-  const response = await userDao.updateUserProfilePicFilename(
-    user,
-    defaultPicFilename
-  );
-
-  if (response.Attributes.user_profile_pic === defaultPicFilename) {
-    return { message: "deleteError" };
-  }
-
-  await imageBao.deleteImage(response.Attributes.user_profile_pic);
-  const picUrl = await getUserProfilePic(defaultPicFilename);
-
-  return { message: "deleteSuccess", picUrl, picFilename: defaultPicFilename };
-}
+/* END HELPER FUNCTIONS */

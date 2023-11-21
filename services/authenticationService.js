@@ -1,69 +1,59 @@
-import "dotenv/config";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import * as userDao from "../repository/userDao.js";
-import * as imageService from "../services/imageService.js";
+import "dotenv/config";
+import * as userService from "../services/userService.js";
 
-export async function signUpUser(userToSignUp) {
-  for (const property in userToSignUp) {
-    userToSignUp[property] = userToSignUp[property].trim();
+export async function signUpUser(signupFormData) {
+  for (const property in signupFormData) {
+    signupFormData[property] = signupFormData[property].trim();
   }
 
-  const { email, password, firstName, lastName, birthDate } = userToSignUp;
+  const { email, password, firstName, lastName, birthDate } = signupFormData;
 
-  const existingUser = await userDao.getUserByEmail(email);
-  if (existingUser.Items.length === 0) {
+  const existingUser = await userService.getExistingUser(email);
+  if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    userToSignUp = {
-      user_id: uuidv4(),
-      user_email: email,
-      user_password: hashedPassword,
-      user_first_name: firstName,
-      user_last_name: lastName,
-      user_birth_date: formatDate(birthDate),
-      user_signup_date: formatDate(moment()),
-      user_profile_pic: process.env.DEFAULT_PROF_PIC,
-      user_friends: [],
+    const newUser = {
+      id: uuidv4(),
+      email,
+      password: hashedPassword,
+      full_name: `${firstName} ${lastName}`,
+      birth_date: formatDate(birthDate),
+      signup_date: formatDate(moment()),
+      pic_filename: process.env.DEFAULT_PROF_PIC,
+      friends: [],
       friend_requests_in: [],
       friend_requests_out: [],
     };
-    await userDao.putUser(userToSignUp);
+    await userService.signUpUser(newUser);
 
     return {
       message: "userRegistered",
-      data: await returnUser(userToSignUp),
+      data: await userService.logInUser(newUser.email),
     };
-  } else {
-    return { message: "userAlreadyExists" };
-  }
+  } else return { message: "userAlreadyExists" };
 }
 
-export async function logInUser(userToLogIn) {
-  const { email, password } = userToLogIn;
-  const data = await userDao.getUserByEmail(email);
+export async function logInUser(loginFormData) {
+  const { email, password } = loginFormData;
+  const existingUser = await userService.getExistingUser(email);
 
-  if (data.Items.length !== 0) {
-    const registeredUser = data.Items[0];
+  if (existingUser) {
     const passwordsMatch = await bcrypt.compare(
       password,
-      registeredUser.user_password
+      existingUser.password
     );
 
     if (passwordsMatch) {
       return {
         message: "userAuthenticated",
-        data: await returnUser(registeredUser),
+        data: await userService.logInUser(existingUser.email),
       };
-    } else {
-      return { message: "incorrectCredentials" };
-    }
-  } else {
-    return { message: "userDoesntExist" };
-  }
+    } else return { message: "incorrectCredentials" };
+  } else return { message: "userDoesntExist" };
 }
 
 /* HELPER FUNCTIONS */
@@ -74,24 +64,6 @@ function formatDate(date) {
   const year = moment(date).year();
 
   return `${month}/${day}/${year}`;
-}
-
-async function returnUser(user) {
-  const token = jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
-  user.user_token = token;
-
-  delete user.user_password;
-  delete user.user_birth_date;
-  delete user.user_registration_date;
-  delete user.user_email;
-
-  user.profile_pic_url = await imageService.getUserProfilePic(
-    user.user_profile_pic
-  );
-
-  return user;
 }
 
 /* END HELPER FUNCTIONS */
