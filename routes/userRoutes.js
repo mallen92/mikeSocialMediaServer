@@ -9,9 +9,9 @@ router.get("/", async (req, res) => {
   const userId = req.query.id;
 
   try {
-    const response = await userService.getClientUser(userId);
+    const response = await userService.getRequestedUser(userId);
     if (response.message === "User retrieved")
-      res.status(200).json(response.data);
+      res.status(200).json(response.user);
     else
       res.status(400).json({ message: "The requested user does not exist." });
   } catch (error) {

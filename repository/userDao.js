@@ -5,12 +5,13 @@ import {
   PutCommand,
   UpdateCommand,
   BatchGetCommand,
+  GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export async function getUser(email) {
+export async function getUserByEmail(email) {
   const command = new QueryCommand({
     TableName: "users",
     IndexName: "email-index",
@@ -18,6 +19,15 @@ export async function getUser(email) {
       ":email": email,
     },
     KeyConditionExpression: "email = :email",
+  });
+
+  return await docClient.send(command);
+}
+
+export async function getUserById(id) {
+  const command = new GetCommand({
+    TableName: "users",
+    Key: { id },
   });
 
   return await docClient.send(command);
