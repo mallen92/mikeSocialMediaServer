@@ -11,12 +11,13 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
   try {
     const multerFile = req.file;
     const user = req.user;
-    const response = await imageService.updateUserProfilePic(user, multerFile);
+    const response = await imageService.updateUserPic(user, multerFile);
 
     if (response.message === "uploadSuccess") {
-      res
-        .status(200)
-        .json({ picUrl: response.picUrl, picFilename: response.picFilename });
+      res.status(200).json({
+        picUrl: response.newPicUrl,
+        picFilename: response.newPicFilename,
+      });
     }
   } catch (error) {
     res
@@ -29,12 +30,13 @@ router.post("/", verifyToken, upload.single("image"), async (req, res) => {
 router.delete("/", verifyToken, async (req, res) => {
   try {
     const user = req.user;
-    const response = await imageService.deleteUserProfilePic(user);
+    const response = await imageService.deleteUserPic(user);
 
     if (response.message === "deleteSuccess")
-      res
-        .status(200)
-        .json({ picUrl: response.picUrl, picFilename: response.picFilename });
+      res.status(200).json({
+        picUrl: response.newPicUrl,
+        picFilename: response.newPicFilename,
+      });
     if (response.message === "deleteError")
       res.status(400).json({ message: "Cannot delete default profile pic" });
   } catch (error) {

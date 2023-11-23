@@ -9,13 +9,13 @@ const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
 export async function updateUserPic(userId, multerFile) {
   const hash = crypto.randomBytes(10).toString("hex");
   const newPicFilename = `${hash}.jpg`;
-  const fileURL = `./tmp/${filename}`;
+  const fileURL = `./tmp/${newPicFilename}`;
   const buffer = multerFile.buffer;
   fs.writeFileSync(fileURL, buffer);
   await imageBao.uploadImage(fileURL, newPicFilename);
   fs.unlinkSync(fileURL);
 
-  const output = await userDao.updateUserPic(userId, newPicFilename);
+  const output = await userDao.updatePicFilename(userId, newPicFilename);
   const oldPicFilename = output.Attributes.pic_filename;
   if (oldPicFilename !== defaultPicFilename)
     await imageBao.deleteImage(oldPicFilename);
