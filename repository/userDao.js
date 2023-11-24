@@ -4,8 +4,8 @@ import {
   QueryCommand,
   PutCommand,
   UpdateCommand,
-  BatchGetCommand,
   GetCommand,
+  BatchGetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({});
@@ -13,12 +13,12 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 export async function getUserByEmail(email) {
   const command = new QueryCommand({
-    TableName: "users",
-    IndexName: "email-index",
+    TableName: "TheSocial",
+    IndexName: "user-email",
+    KeyConditionExpression: "email = :email",
     ExpressionAttributeValues: {
       ":email": email,
     },
-    KeyConditionExpression: "email = :email",
   });
 
   return await docClient.send(command);
@@ -26,8 +26,8 @@ export async function getUserByEmail(email) {
 
 export async function getUserById(id) {
   const command = new GetCommand({
-    TableName: "users",
-    Key: { id },
+    TableName: "TheSocial",
+    Key: { PK: `u#${id}`, SK: `u#${id}` },
   });
 
   return await docClient.send(command);
@@ -35,31 +35,29 @@ export async function getUserById(id) {
 
 export async function putUser(user) {
   const {
+    PK,
+    SK,
     id,
+    full_name,
     email,
     password,
-    full_name,
     birth_date,
     signup_date,
     pic_filename,
-    friends,
-    friend_requests_out,
-    friend_requests_in,
   } = user;
 
   const command = new PutCommand({
-    TableName: "users",
+    TableName: "TheSocial",
     Item: {
+      PK,
+      SK,
       id,
+      full_name,
       email,
       password,
-      full_name,
       birth_date,
       signup_date,
       pic_filename,
-      friends,
-      friend_requests_out,
-      friend_requests_in,
     },
   });
 
@@ -68,8 +66,8 @@ export async function putUser(user) {
 
 export async function updatePicFilename(userId, filename) {
   const command = new UpdateCommand({
-    TableName: "users",
-    Key: { id: userId },
+    TableName: "TheSocial",
+    Key: { PK: `u#${userId}`, SK: `u#${userId}` },
     UpdateExpression: "SET pic_filename = :filename",
     ExpressionAttributeValues: {
       ":filename": filename,
@@ -80,15 +78,21 @@ export async function updatePicFilename(userId, filename) {
   return await docClient.send(command);
 }
 
-export async function getUserIntroInfo(Keys) {
+export async function getFriendsAndRequests(requestedUserId, requestingUserId) {
   const command = new BatchGetCommand({
     RequestItems: {
-      users: {
-        Keys,
-        ProjectionExpression: "id, #name, profile_pic",
-        ExpressionAttributeNames: {
-          "#name": "name",
-        },
+      TheSocial: {
+        Keys: [
+          { PK: `u#${requestingUserId}#friends`, SK: `u#${requestedUserId}` },
+          {
+            PK: `u#${requestingUserId}#requests_in`,
+            SK: `u#${requestedUserId}`,
+          },
+          {
+            PK: `u#${requestingUserId}#requests_out`,
+            SK: `u#${requestedUserId}`,
+          },
+        ],
       },
     },
   });

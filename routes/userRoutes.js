@@ -6,10 +6,14 @@ import verifyToken from "../middleware/verifyToken.js";
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const userId = req.query.id;
+  const requestedUserId = req.query.id;
+  const requestingUserId = req.get("requesting-user-id");
 
   try {
-    const response = await userService.getRequestedUser(userId);
+    const response = await userService.getRequestedUser(
+      requestedUserId,
+      requestingUserId
+    );
     if (response.message === "User retrieved")
       res.status(200).json(response.user);
     else

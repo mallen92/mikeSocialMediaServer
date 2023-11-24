@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import moment from "moment";
-import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 import "dotenv/config";
 import * as userService from "../services/userService.js";
 
@@ -15,24 +15,26 @@ export async function signUpUser(signupFormData) {
   if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
+    const id = `${crypto.randomBytes(5).toString("hex")}-${crypto
+      .randomBytes(5)
+      .toString("hex")}`;
 
     const newUser = {
-      id: uuidv4(),
+      PK: `u#${id}`,
+      SK: `u#${id}`,
+      id,
+      full_name: `${firstName} ${lastName}`,
       email,
       password: hashedPassword,
-      full_name: `${firstName} ${lastName}`,
       birth_date: formatDate(birthDate),
       signup_date: formatDate(moment()),
       pic_filename: process.env.DEFAULT_PROF_PIC,
-      friends: [],
-      friend_requests_in: [],
-      friend_requests_out: [],
     };
     await userService.signUpUser(newUser);
 
     return {
       message: "userRegistered",
-      data: await userService.logInUser(newUser.email),
+      data: await userService.logInUser(newUser),
     };
   } else return { message: "userAlreadyExists" };
 }
@@ -50,7 +52,7 @@ export async function logInUser(loginFormData) {
     if (passwordsMatch) {
       return {
         message: "userAuthenticated",
-        data: await userService.logInUser(existingUser.email),
+        data: await userService.logInUser(existingUser),
       };
     } else return { message: "incorrectCredentials" };
   } else return { message: "userDoesntExist" };

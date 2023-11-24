@@ -12,32 +12,57 @@ export async function signUpUser(user) {
   userDao.putUser(user);
 }
 
-export async function logInUser(email) {
-  const user = await getExistingUser(email);
-
+export async function logInUser(user) {
   user.token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
   user.pic_url = await imageService.getUserPic(user.pic_filename);
 
   delete user.password;
-  delete user.birth_date;
+  delete user.PK;
+  delete user.SK;
   delete user.signup_date;
   delete user.email;
 
   return user;
 }
 
-export async function getRequestedUser(id) {
-  const output = await userDao.getUserById(id);
+export async function getRequestedUser(requestedUserId, requestingUserId) {
+  let friendStatus = "";
+
+  if (requestingUserId) {
+    const output = await userDao.getFriendsAndRequests(
+      requestedUserId,
+      requestingUserId
+    );
+
+    if (output.Responses.TheSocial.length === 0) friendStatus = "not a friend";
+    else {
+      const result = output.Responses.TheSocial[0].PK.split("#")[2];
+
+      switch (result) {
+        case "friends":
+          friendStatus = "friend";
+          break;
+        case "requests_in":
+          friendStatus = "received request from";
+          break;
+        case "requests_out":
+          friendStatus = "sent request to";
+          break;
+      }
+    }
+  }
+
+  const output = await userDao.getUserById(requestedUserId);
   const user = output.Item;
 
+  if (friendStatus) user.friend_status = friendStatus;
   user.pic_url = await imageService.getUserPic(user.pic_filename);
 
   delete user.password;
-  delete user.friends;
-  delete user.friend_requests_in;
-  delete user.friend_requests_out;
+  delete user.PK;
+  delete user.SK;
 
   return { message: "User retrieved", user };
 }
