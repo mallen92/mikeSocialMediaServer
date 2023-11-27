@@ -1,5 +1,5 @@
 import fs from "fs";
-import crypto from "crypto";
+import { UniqueString } from "unique-string-generator";
 import "dotenv/config";
 import * as userDao from "../repository/userDao.js";
 import * as imageBao from "../repository/imageBao.js";
@@ -7,7 +7,7 @@ import * as imageBao from "../repository/imageBao.js";
 const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
 
 export async function updateUserPic(userId, multerFile) {
-  const hash = crypto.randomBytes(10).toString("hex");
+  const hash = UniqueString();
   const newPicFilename = `${hash}.jpg`;
   const fileURL = `./tmp/${newPicFilename}`;
   const buffer = multerFile.buffer;

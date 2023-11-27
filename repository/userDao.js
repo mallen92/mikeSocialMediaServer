@@ -1,33 +1,36 @@
+import "dotenv/config";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   QueryCommand,
   PutCommand,
-  UpdateCommand,
   GetCommand,
+  UpdateCommand,
   BatchGetCommand,
+  BatchWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({});
+const region = process.env.AWS_REGION;
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+const client = new DynamoDBClient({
+  region,
+  accessKeyId,
+  secretAccessKey,
+});
 const docClient = DynamoDBDocumentClient.from(client);
+
+const TableName = process.env.DDB_TABLE_NAME;
 
 export async function getUserByEmail(email) {
   const command = new QueryCommand({
-    TableName: "TheSocial",
+    TableName,
     IndexName: "user-email",
     KeyConditionExpression: "email = :email",
     ExpressionAttributeValues: {
       ":email": email,
     },
-  });
-
-  return await docClient.send(command);
-}
-
-export async function getUserById(id) {
-  const command = new GetCommand({
-    TableName: "TheSocial",
-    Key: { PK: `u#${id}`, SK: `u#${id}` },
   });
 
   return await docClient.send(command);
@@ -47,7 +50,7 @@ export async function putUser(user) {
   } = user;
 
   const command = new PutCommand({
-    TableName: "TheSocial",
+    TableName,
     Item: {
       PK,
       SK,
@@ -64,9 +67,18 @@ export async function putUser(user) {
   return await docClient.send(command);
 }
 
+export async function getUserById(id) {
+  const command = new GetCommand({
+    TableName,
+    Key: { PK: `u#${id}`, SK: `u#${id}` },
+  });
+
+  return await docClient.send(command);
+}
+
 export async function updatePicFilename(userId, filename) {
   const command = new UpdateCommand({
-    TableName: "TheSocial",
+    TableName,
     Key: { PK: `u#${userId}`, SK: `u#${userId}` },
     UpdateExpression: "SET pic_filename = :filename",
     ExpressionAttributeValues: {
@@ -94,6 +106,33 @@ export async function getFriendsAndRequests(requestedUserId, requestingUserId) {
           },
         ],
       },
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+export async function createFriendRequest(recipUserId, senderUserId) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${senderUserId}#requests_out`,
+              SK: `u#${recipUserId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${recipUserId}#requests_in`,
+              SK: `u#${senderUserId}`,
+            },
+          },
+        },
+      ],
     },
   });
 
