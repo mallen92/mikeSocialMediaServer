@@ -21,6 +21,7 @@ export async function logInUser(user) {
   delete user.password;
   delete user.PK;
   delete user.SK;
+  delete user.birth_date;
   delete user.signup_date;
   delete user.email;
 
@@ -65,4 +66,9 @@ export async function getRequestedUser(requestedUserId, requestingUserId) {
   delete user.SK;
 
   return { message: "User retrieved", user };
+}
+
+export async function createFriendRequest(recipUserId, senderUserId) {
+  await userDao.createFriendRequest(recipUserId, senderUserId);
+  return { message: "Request created" };
 }

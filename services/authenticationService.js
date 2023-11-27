@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import moment from "moment";
-import crypto from "crypto";
+import { UniqueStringId } from "unique-string-generator";
 import "dotenv/config";
 import * as userService from "../services/userService.js";
 
@@ -15,9 +15,8 @@ export async function signUpUser(signupFormData) {
   if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-    const id = `${crypto.randomBytes(5).toString("hex")}-${crypto
-      .randomBytes(5)
-      .toString("hex")}`;
+
+    const id = UniqueStringId();
 
     const newUser = {
       PK: `u#${id}`,

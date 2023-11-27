@@ -27,12 +27,15 @@ router.get("/", async (req, res) => {
 });
 
 router.put("/request", verifyToken, async (req, res) => {
-  const userId = req.user;
-  const reqUserId = req.query.id;
+  const recipUserId = req.query.id;
+  const senderUserId = req.user;
 
   try {
-    const response = await userService.addFriendRequest(userId, reqUserId);
-    if (response.message === "Request added")
+    const response = await userService.createFriendRequest(
+      recipUserId,
+      senderUserId
+    );
+    if (response.message === "Request created")
       res.status(200).json({ message: "Friend request sent!" });
   } catch (error) {
     res
