@@ -32,7 +32,7 @@ export async function getRequestedUser(requestedUserId, requestingUserId) {
   let friendStatus = "";
 
   if (requestingUserId) {
-    const output = await userDao.getFriendsAndRequests(
+    const output = await userDao.getFriendOrRequest(
       requestedUserId,
       requestingUserId
     );
@@ -70,5 +70,5 @@ export async function getRequestedUser(requestedUserId, requestingUserId) {
 
 export async function createFriendRequest(recipUserId, senderUserId) {
   await userDao.createFriendRequest(recipUserId, senderUserId);
-  return { message: "Request created" };
+  return { message: "Request created", status: "sent request to" };
 }

@@ -36,7 +36,7 @@ router.put("/request", verifyToken, async (req, res) => {
       senderUserId
     );
     if (response.message === "Request created")
-      res.status(200).json({ message: "Friend request sent!" });
+      res.status(200).json(response.status);
   } catch (error) {
     res
       .status(500)
