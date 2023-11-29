@@ -90,7 +90,7 @@ export async function updatePicFilename(userId, filename) {
   return await docClient.send(command);
 }
 
-export async function getFriendsAndRequests(requestedUserId, requestingUserId) {
+export async function getFriendOrRequest(requestedUserId, requestingUserId) {
   const command = new BatchGetCommand({
     RequestItems: {
       TheSocial: {
