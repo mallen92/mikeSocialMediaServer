@@ -72,3 +72,18 @@ export async function createFriendRequest(recipUserId, senderUserId) {
   await userDao.createFriendRequest(recipUserId, senderUserId);
   return { message: "Request created", status: "sent request to" };
 }
+
+export async function deleteFriendRequest(userOut, userIn) {
+  await userDao.deleteFriendRequest(userOut, userIn);
+  return { message: "Request deleted", status: "not a friend" };
+}
+
+export async function acceptFriendRequest(recipUserId, senderUserId) {
+  await userDao.acceptFriendRequest(recipUserId, senderUserId);
+  return { message: "Request accepted", status: "friend" };
+}
+
+export async function removeFriend(userId, userToRemove) {
+  await userDao.removeFriend(userId, userToRemove);
+  return { message: "Friend removed", status: "not a friend" };
+}
