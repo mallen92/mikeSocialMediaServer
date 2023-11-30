@@ -138,3 +138,100 @@ export async function createFriendRequest(recipUserId, senderUserId) {
 
   return await docClient.send(command);
 }
+
+export async function deleteFriendRequest(userOut, userIn) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userOut}#requests_out`,
+              SK: `u#${userIn}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userIn}#requests_in`,
+              SK: `u#${userOut}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+export async function acceptFriendRequest(recipUserId, senderUserId) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${senderUserId}#requests_out`,
+              SK: `u#${recipUserId}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${recipUserId}#requests_in`,
+              SK: `u#${senderUserId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${senderUserId}#friends`,
+              SK: `u#${recipUserId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${recipUserId}#friends`,
+              SK: `u#${senderUserId}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+export async function removeFriend(userId, userToRemove) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userId}#friends`,
+              SK: `u#${userToRemove}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userToRemove}#friends`,
+              SK: `u#${userId}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
