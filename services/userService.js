@@ -87,3 +87,43 @@ export async function removeFriend(userId, userToRemove) {
   await userDao.removeFriend(userId, userToRemove);
   return { message: "Friend removed", status: "not a friend" };
 }
+
+export async function getFriends(reqUserId, page) {
+  let users = [];
+  let lastKey;
+  let pageTracker = 0;
+
+  do {
+    const friendsOutput = await userDao.getFriends(reqUserId, lastKey);
+
+    if (pageTracker === page - 1) {
+      for (let i = 0; i < friendsOutput.Items.length; i++) {
+        const user = friendsOutput.Items[i].SK.split("#")[1];
+        users.push(user);
+      }
+    }
+
+    lastKey = friendsOutput.LastEvaluatedKey;
+    pageTracker++;
+  } while (pageTracker < page);
+
+  /* Send back message if user has no friends */
+  if (users.length === 0) return { message: "No friends", data: [] };
+
+  /* Gets the friends' info */
+  for (let i = 0; i < users.length; i++) {
+    users[i] = { PK: `u#${users[i]}`, SK: `u#${users[i]}` };
+  }
+
+  const infoOutput = await userDao.getFriendsBasicInfo(users);
+  let data = infoOutput.Responses.TheSocial;
+
+  /* Convert each pic filename to a data URL */
+  for (let i = 0; i < data.length; i++) {
+    data[i].pic_url = await imageService.getUserPic(data[i].pic_filename);
+    data[i].resultId = i + 1;
+    delete data[i].pic_filename;
+  }
+
+  return { message: "Friends retrieved", data, lastKey };
+}

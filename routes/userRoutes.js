@@ -105,14 +105,17 @@ router.delete("/friend", verifyToken, async (req, res) => {
 
 router.get("/friends", async (req, res) => {
   const reqUserId = req.query.id;
+  const page = req.query.page;
 
   try {
-    const response = await userService.getFriends(reqUserId);
+    const response = await userService.getFriends(reqUserId, page);
     if (response.message === "Friends retrieved")
       res.status(200).json({
-        reqUserName: response.reqUserName,
-        reqUserFriends: response.reqUserFriends,
+        friends: response.data,
+        lastKey: response.lastKey,
       });
+    else if (response.message === "No friends")
+      res.status(404).json({ data: response.data });
   } catch (error) {
     res
       .status(500)

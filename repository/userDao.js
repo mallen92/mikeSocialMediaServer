@@ -235,3 +235,30 @@ export async function removeFriend(userId, userToRemove) {
 
   return await docClient.send(command);
 }
+
+export async function getFriends(userId, ExclusiveStartKey) {
+  const command = new QueryCommand({
+    TableName,
+    ExclusiveStartKey,
+    KeyConditionExpression: "PK = :key",
+    ExpressionAttributeValues: {
+      ":key": `u#${userId}#friends`,
+    },
+    Limit: 30,
+  });
+
+  return await docClient.send(command);
+}
+
+export async function getFriendsBasicInfo(Keys) {
+  const command = new BatchGetCommand({
+    RequestItems: {
+      TheSocial: {
+        Keys,
+        ProjectionExpression: "full_name, pic_filename",
+      },
+    },
+  });
+
+  return await docClient.send(command);
+}
