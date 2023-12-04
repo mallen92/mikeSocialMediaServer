@@ -264,33 +264,29 @@ export async function removeFriend(userId, userToRemove) {
   return await docClient.send(command);
 }
 
-export async function getFriends(userId, ExclusiveStartKey, Limit = 30) {
+export async function getFriends(id) {
   const command = new QueryCommand({
     TableName,
-    ExclusiveStartKey,
     KeyConditionExpression: "PK = :key",
     ExpressionAttributeValues: {
-      ":key": `u#${userId}#friends`,
+      ":key": `u#${id}#friends`,
     },
-    Limit,
   });
 
   return await docClient.send(command);
 }
 
-export async function getFriendsByKeyword(id, keyword, ExclusiveStartKey) {
+export async function getFriendsByKeyword(id, keyword) {
   keyword = keyword.toLowerCase();
 
   const command = new QueryCommand({
     TableName,
-    ExclusiveStartKey,
-    KeyConditionExpression: "PK = :partition",
+    KeyConditionExpression: "PK = :key",
     FilterExpression: "contains(name_search, :keyword)",
     ExpressionAttributeValues: {
-      ":partition": `u#${id}#friends`,
-      ":keyword": `${keyword}`,
+      ":key": `u#${id}#friends`,
+      ":keyword": keyword,
     },
-    Limit: 30,
   });
 
   return await docClient.send(command);

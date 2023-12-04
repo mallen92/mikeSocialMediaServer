@@ -111,14 +111,13 @@ router.delete("/friend", verifyToken, async (req, res) => {
 
 router.get("/friends/:action", async (req, res) => {
   const reqUserId = req.query.id;
-  const page = req.query.page;
   const keyword = req.query.keyword;
   const action = req.params.action;
   let response;
 
   try {
     if (action === "list") {
-      response = await userService.getFriends(reqUserId, page);
+      response = await userService.getFriends(reqUserId);
     } else if (action === "search") {
       response = await userService.searchFriends(reqUserId, keyword);
     }

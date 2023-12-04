@@ -88,44 +88,16 @@ export async function removeFriend(userId, userToRemove) {
   return { message: "Friend removed", status: "not a friend" };
 }
 
-export async function getFriends(reqUserId, page = 1, limit = null) {
-  let friends;
-  let lastKey;
-  let pageTracker = 0;
-
-  do {
-    const output = await userDao.getFriends(reqUserId, lastKey);
-    lastKey = output.LastEvaluatedKey;
-
-    if (pageTracker === page - 1)
-      friends = await packageFriendsInfo(output.Items);
-
-    pageTracker++;
-  } while (pageTracker < page);
-
-  return { message: "Friends retrieved", friends, lastKey };
+export async function getFriends(reqUserId) {
+  const output = await userDao.getFriends(reqUserId);
+  const friends = await packageFriendsInfo(output.Items);
+  return { message: "Friends retrieved", friends };
 }
 
-export async function searchFriends(reqUserId, keyword, page = 1) {
-  let friends = [];
-  let lastKey;
-  let pageTracker = 0;
-
-  do {
-    const output = await userDao.getFriendsByKeyword(
-      reqUserId,
-      keyword,
-      lastKey
-    );
-    lastKey = output.LastEvaluatedKey;
-
-    if (pageTracker === page - 1)
-      friends = await packageFriendsInfo(output.Items);
-
-    pageTracker++;
-  } while (pageTracker < page);
-
-  return { message: "Results retrieved", friends, lastKey };
+export async function searchFriends(reqUserId, keyword) {
+  const output = await userDao.getFriendsByKeyword(reqUserId, keyword);
+  const friends = await packageFriendsInfo(output.Items);
+  return { message: "Results retrieved", friends };
 }
 
 /*---------------------- HELPER FUNCTION ----------------------*/
@@ -134,6 +106,7 @@ async function packageFriendsInfo(friends) {
   for (let i = 0; i < friends.length; i++) {
     const friend = friends[i];
 
+    friend.id = friend.SK.split("#")[1];
     friend.resultId = i + 1;
     friend.pic_url = await imageService.getUserPic(friend.pic_filename);
     delete friend.PK;
