@@ -118,6 +118,8 @@ router.get("/friends/:action", async (req, res) => {
   try {
     if (action === "list") {
       response = await userService.getFriends(reqUserId);
+    } else if (action === "preview") {
+      response = await userService.getFriends(reqUserId, 6);
     } else if (action === "search") {
       response = await userService.searchFriends(reqUserId, keyword);
     }

@@ -264,13 +264,14 @@ export async function removeFriend(userId, userToRemove) {
   return await docClient.send(command);
 }
 
-export async function getFriends(id) {
+export async function getFriends(id, Limit = null) {
   const command = new QueryCommand({
     TableName,
     KeyConditionExpression: "PK = :key",
     ExpressionAttributeValues: {
       ":key": `u#${id}#friends`,
     },
+    Limit,
   });
 
   return await docClient.send(command);
