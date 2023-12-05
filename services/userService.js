@@ -68,8 +68,8 @@ export async function getRequestedUser(requestedUserId, requestingUserId) {
   return { message: "User retrieved", user };
 }
 
-export async function createFriendRequest(recipUserId, senderUserId) {
-  await userDao.createFriendRequest(recipUserId, senderUserId);
+export async function createFriendRequest(reqInfo) {
+  await userDao.createFriendRequest(reqInfo);
   return { message: "Request created", status: "sent request to" };
 }
 
@@ -78,8 +78,8 @@ export async function deleteFriendRequest(userOut, userIn) {
   return { message: "Request deleted", status: "not a friend" };
 }
 
-export async function acceptFriendRequest(recipUserId, senderUserId) {
-  await userDao.acceptFriendRequest(recipUserId, senderUserId);
+export async function acceptFriendRequest(reqInfo) {
+  await userDao.acceptFriendRequest(reqInfo);
   return { message: "Request accepted", status: "friend" };
 }
 
@@ -88,42 +88,36 @@ export async function removeFriend(userId, userToRemove) {
   return { message: "Friend removed", status: "not a friend" };
 }
 
-export async function getFriends(reqUserId, page) {
-  let users = [];
+export async function getFriends(reqUserId, limit = null) {
   let lastKey;
-  let pageTracker = 0;
-
-  do {
-    const friendsOutput = await userDao.getFriends(reqUserId, lastKey);
-
-    if (pageTracker === page - 1) {
-      for (let i = 0; i < friendsOutput.Items.length; i++) {
-        const user = friendsOutput.Items[i].SK.split("#")[1];
-        users.push(user);
-      }
-    }
-
-    lastKey = friendsOutput.LastEvaluatedKey;
-    pageTracker++;
-  } while (pageTracker < page);
-
-  /* Send back message if user has no friends */
-  if (users.length === 0) return { message: "No friends", data: [] };
-
-  /* Gets the friends' info */
-  for (let i = 0; i < users.length; i++) {
-    users[i] = { PK: `u#${users[i]}`, SK: `u#${users[i]}` };
-  }
-
-  const infoOutput = await userDao.getFriendsBasicInfo(users);
-  let data = infoOutput.Responses.TheSocial;
-
-  /* Convert each pic filename to a data URL */
-  for (let i = 0; i < data.length; i++) {
-    data[i].pic_url = await imageService.getUserPic(data[i].pic_filename);
-    data[i].resultId = i + 1;
-    delete data[i].pic_filename;
-  }
-
-  return { message: "Friends retrieved", data, lastKey };
+  const output = await userDao.getFriends(reqUserId, limit);
+  lastKey = output.LastEvaluatedKey;
+  const friends = await packageFriendsInfo(output.Items);
+  return { message: "Friends retrieved", friends, lastKey };
 }
+
+export async function searchFriends(reqUserId, keyword) {
+  const output = await userDao.getFriendsByKeyword(reqUserId, keyword);
+  const friends = await packageFriendsInfo(output.Items);
+  return { message: "Results retrieved", friends };
+}
+
+/*---------------------- HELPER FUNCTION ----------------------*/
+
+async function packageFriendsInfo(friends) {
+  for (let i = 0; i < friends.length; i++) {
+    const friend = friends[i];
+
+    friend.id = friend.SK.split("#")[1];
+    friend.resultId = i + 1;
+    friend.pic_url = await imageService.getUserPic(friend.pic_filename);
+    delete friend.PK;
+    delete friend.SK;
+    delete friend.pic_filename;
+    delete friend.name_search;
+  }
+
+  return friends;
+}
+
+/*---------------------- END HELPER FUNCTION ----------------------*/

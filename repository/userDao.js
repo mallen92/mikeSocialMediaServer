@@ -112,23 +112,36 @@ export async function getFriendOrRequest(requestedUserId, requestingUserId) {
   return await docClient.send(command);
 }
 
-export async function createFriendRequest(recipUserId, senderUserId) {
+export async function createFriendRequest(reqInfo) {
+  const {
+    recipId,
+    recipName,
+    recipPicFile,
+    senderId,
+    senderName,
+    senderPicFile,
+  } = reqInfo;
+
   const command = new BatchWriteCommand({
     RequestItems: {
       TheSocial: [
         {
           PutRequest: {
             Item: {
-              PK: `u#${senderUserId}#requests_out`,
-              SK: `u#${recipUserId}`,
+              PK: `u#${senderId}#requests_out`,
+              SK: `u#${recipId}`,
+              full_name: recipName,
+              pic_filename: recipPicFile,
             },
           },
         },
         {
           PutRequest: {
             Item: {
-              PK: `u#${recipUserId}#requests_in`,
-              SK: `u#${senderUserId}`,
+              PK: `u#${recipId}#requests_in`,
+              SK: `u#${senderId}`,
+              full_name: senderName,
+              pic_filename: senderPicFile,
             },
           },
         },
@@ -166,39 +179,54 @@ export async function deleteFriendRequest(userOut, userIn) {
   return await docClient.send(command);
 }
 
-export async function acceptFriendRequest(recipUserId, senderUserId) {
+export async function acceptFriendRequest(reqInfo) {
+  const {
+    recipId,
+    recipName,
+    recipPicFile,
+    senderId,
+    senderName,
+    senderPicFile,
+  } = reqInfo;
+
   const command = new BatchWriteCommand({
     RequestItems: {
       TheSocial: [
         {
           DeleteRequest: {
             Key: {
-              PK: `u#${senderUserId}#requests_out`,
-              SK: `u#${recipUserId}`,
+              PK: `u#${senderId}#requests_out`,
+              SK: `u#${recipId}`,
             },
           },
         },
         {
           DeleteRequest: {
             Key: {
-              PK: `u#${recipUserId}#requests_in`,
-              SK: `u#${senderUserId}`,
+              PK: `u#${recipId}#requests_in`,
+              SK: `u#${senderId}`,
             },
           },
         },
         {
           PutRequest: {
             Item: {
-              PK: `u#${senderUserId}#friends`,
-              SK: `u#${recipUserId}`,
+              PK: `u#${senderId}#friends`,
+              SK: `u#${recipId}`,
+              full_name: recipName,
+              pic_filename: recipPicFile,
+              name_search: recipName.toLowerCase(),
             },
           },
         },
         {
           PutRequest: {
             Item: {
-              PK: `u#${recipUserId}#friends`,
-              SK: `u#${senderUserId}`,
+              PK: `u#${recipId}#friends`,
+              SK: `u#${senderId}`,
+              full_name: senderName,
+              pic_filename: senderPicFile,
+              name_search: senderName.toLowerCase(),
             },
           },
         },
@@ -236,27 +264,29 @@ export async function removeFriend(userId, userToRemove) {
   return await docClient.send(command);
 }
 
-export async function getFriends(userId, ExclusiveStartKey) {
+export async function getFriends(id, Limit = null) {
   const command = new QueryCommand({
     TableName,
-    ExclusiveStartKey,
     KeyConditionExpression: "PK = :key",
     ExpressionAttributeValues: {
-      ":key": `u#${userId}#friends`,
+      ":key": `u#${id}#friends`,
     },
-    Limit: 30,
+    Limit,
   });
 
   return await docClient.send(command);
 }
 
-export async function getFriendsBasicInfo(Keys) {
-  const command = new BatchGetCommand({
-    RequestItems: {
-      TheSocial: {
-        Keys,
-        ProjectionExpression: "full_name, pic_filename",
-      },
+export async function getFriendsByKeyword(id, keyword) {
+  keyword = keyword.toLowerCase();
+
+  const command = new QueryCommand({
+    TableName,
+    KeyConditionExpression: "PK = :key",
+    FilterExpression: "contains(name_search, :keyword)",
+    ExpressionAttributeValues: {
+      ":key": `u#${id}#friends`,
+      ":keyword": keyword,
     },
   });
 
