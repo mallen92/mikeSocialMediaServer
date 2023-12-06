@@ -89,9 +89,8 @@ export async function removeFriend(userId, userToRemove) {
 }
 
 export async function getFriends(reqUserId, limit = null) {
-  let lastKey;
   const output = await userDao.getFriends(reqUserId, limit);
-  lastKey = output.LastEvaluatedKey;
+  const lastKey = output.LastEvaluatedKey;
   const friends = await packageFriendsInfo(output.Items);
   return { message: "Friends retrieved", friends, lastKey };
 }
