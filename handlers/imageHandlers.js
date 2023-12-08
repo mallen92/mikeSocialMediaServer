@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import verifyToken from "../middleware/verifyToken.js";
 import * as imageService from "../services/imageService.js";
-import { logger } from "../logging/logger.js";
+import { logger } from "../logs/logger.js";
 
 const router = Router();
 const upload = multer();

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { logger } from "../logging/logger.js";
+import { logger } from "../logs/logger.js";
 import * as authenticationService from "../services/authenticationService.js";
 import validateSignup from "../middleware/validateSignup.js";
 import validateLogin from "../middleware/validateLogin.js";
@@ -15,10 +15,10 @@ router.post("/signup", validateSignup, async (req, res) => {
       case "userRegistered":
         res.status(200).json(response.data);
         break;
-      case "userAlreadyExists":
+      case "acctAlreadyExists":
         res
           .status(400)
-          .json({ error: "A user with that email already exists." });
+          .json({ error: "An account with that email already exists." });
         break;
       default:
         const error = "The server encountered a problem.";
@@ -45,10 +45,10 @@ router.post("/login", validateLogin, async (req, res) => {
       case "incorrectCredentials":
         res.status(400).json({ message: "Incorrect email or password." });
         break;
-      case "userDoesntExist":
-        res
-          .status(400)
-          .json({ message: "A user with that email address does not exist." });
+      case "acctDoesntExist":
+        res.status(400).json({
+          message: "An account with that email address does not exist.",
+        });
         break;
       default:
         const error = "The server encountered a problem.";
