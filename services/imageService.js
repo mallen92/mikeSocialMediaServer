@@ -1,46 +1,10 @@
 import fs from "fs";
 import { UniqueString } from "unique-string-generator";
 import "dotenv/config";
-import * as userDao from "../repository/userDao.js";
-import * as imageBao from "../repository/imageBao.js";
+import * as appDao from "../database/appDao.js";
+import * as imageBao from "../database/imageBao.js";
 
 const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
-
-export async function updateUserPic(userId, multerFile) {
-  const hash = UniqueString();
-  const newPicFilename = `${hash}.jpg`;
-  const fileURL = `./tmp/${newPicFilename}`;
-  const buffer = multerFile.buffer;
-  fs.writeFileSync(fileURL, buffer);
-  await imageBao.uploadImage(fileURL, newPicFilename);
-  fs.unlinkSync(fileURL);
-
-  const output = await userDao.updatePicFilename(userId, newPicFilename);
-  const oldPicFilename = output.Attributes.pic_filename;
-  if (oldPicFilename !== defaultPicFilename)
-    await imageBao.deleteImage(oldPicFilename);
-
-  const newPicUrl = await getUserPic(newPicFilename);
-  return { message: "uploadSuccess", newPicUrl, newPicFilename };
-}
-
-export async function deleteUserPic(userId) {
-  const output = await userDao.updatePicFilename(userId, defaultPicFilename);
-
-  if (output.Attributes.pic_filename === defaultPicFilename)
-    return { message: "deleteError" };
-
-  await imageBao.deleteImage(output.Attributes.pic_filename);
-  const newPicUrl = await getUserPic(defaultPicFilename);
-
-  return {
-    message: "deleteSuccess",
-    newPicUrl,
-    newPicFilename: defaultPicFilename,
-  };
-}
-
-/* HELPER FUNCTIONS */
 
 export async function getUserPic(filename) {
   const imgObj = await imageBao.getImage(filename);
@@ -48,5 +12,3 @@ export async function getUserPic(filename) {
   const byte64 = Buffer.from(byteArray).toString("base64");
   return `data:image/png;base64,${byte64}`;
 }
-
-/* END HELPER FUNCTIONS */

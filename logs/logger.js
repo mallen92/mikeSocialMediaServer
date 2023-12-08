@@ -7,5 +7,5 @@ export const logger = createLogger({
     timestamp({ format: "MM/DD/YYYY hh:mm:ss A" }),
     prettyPrint()
   ),
-  transports: [new transports.File({ filename: "logging/error.log" })],
+  transports: [new transports.File({ filename: "logs/error.log" })],
 });

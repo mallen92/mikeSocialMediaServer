@@ -1,7 +1,7 @@
+import "dotenv/config";
 import bcrypt from "bcrypt";
 import moment from "moment";
-import { UniqueStringId } from "unique-string-generator";
-import "dotenv/config";
+import { UniqueString } from "unique-string-generator";
 import * as userService from "../services/userService.js";
 
 export async function signUpUser(signupFormData) {
@@ -11,50 +11,50 @@ export async function signUpUser(signupFormData) {
 
   const { email, password, firstName, lastName, birthDate } = signupFormData;
 
-  const existingUser = await userService.getExistingUser(email);
+  const existingUser = await userService.getAccountLogin(email);
   if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    const id = UniqueStringId();
+    const id = UniqueString();
 
     const newUser = {
-      PK: `u#${id}`,
-      SK: `u#${id}`,
       id,
-      full_name: `${firstName} ${lastName}`,
+      firstName,
+      lastName,
+      picFilename: process.env.DEFAULT_PROF_PIC,
       email,
       password: hashedPassword,
-      birth_date: formatDate(birthDate),
-      signup_date: formatDate(moment()),
-      pic_filename: process.env.DEFAULT_PROF_PIC,
+      birthDate: formatDate(birthDate),
+      signupDate: formatDate(moment()),
     };
-    await userService.signUpUser(newUser);
+    await userService.createAccount(newUser);
 
     return {
       message: "userRegistered",
-      data: await userService.logInUser(newUser),
+      data: await userService.getAccountUser(id),
     };
-  } else return { message: "userAlreadyExists" };
+  } else return { message: "acctAlreadyExists" };
 }
 
 export async function logInUser(loginFormData) {
   const { email, password } = loginFormData;
-  const existingUser = await userService.getExistingUser(email);
+  const existingAcctCreds = await userService.getAccountLogin(email);
 
-  if (existingUser) {
+  if (existingAcctCreds) {
     const passwordsMatch = await bcrypt.compare(
       password,
-      existingUser.password
+      existingAcctCreds.acctPassword
     );
 
     if (passwordsMatch) {
+      const userId = existingAcctCreds.PK.split("#")[1];
+
       return {
         message: "userAuthenticated",
-        data: await userService.logInUser(existingUser),
+        data: await userService.getAccountUser(userId),
       };
     } else return { message: "incorrectCredentials" };
-  } else return { message: "userDoesntExist" };
+  } else return { message: "acctDoesntExist" };
 }
 
 /* HELPER FUNCTIONS */
