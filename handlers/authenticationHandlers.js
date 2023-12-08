@@ -15,10 +15,10 @@ router.post("/signup", validateSignup, async (req, res) => {
       case "userRegistered":
         res.status(200).json(response.data);
         break;
-      case "acctAlreadyExists":
+      case "userAlreadyExists":
         res
           .status(400)
-          .json({ error: "An account with that email already exists." });
+          .json({ error: "A user with that email already exists." });
         break;
       default:
         const error = "The server encountered a problem.";
@@ -45,9 +45,9 @@ router.post("/login", validateLogin, async (req, res) => {
       case "incorrectCredentials":
         res.status(400).json({ message: "Incorrect email or password." });
         break;
-      case "acctDoesntExist":
+      case "userDoesntExist":
         res.status(400).json({
-          message: "An account with that email address does not exist.",
+          message: "A user with that email address does not exist.",
         });
         break;
       default:

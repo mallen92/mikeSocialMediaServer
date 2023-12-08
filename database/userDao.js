@@ -21,7 +21,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TableName = process.env.DDB_TABLE_NAME;
 const IndexName = process.env.DDB_INDEX_NAME;
 
-export async function getAccountLogin(acctEmail) {
+export async function getLogin(acctEmail) {
   const command = new QueryCommand({
     TableName,
     IndexName,

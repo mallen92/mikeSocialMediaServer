@@ -11,7 +11,7 @@ export async function signUpUser(signupFormData) {
 
   const { email, password, firstName, lastName, birthDate } = signupFormData;
 
-  const existingUser = await userService.getAccountLogin(email);
+  const existingUser = await userService.getLogin(email);
   if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -27,18 +27,18 @@ export async function signUpUser(signupFormData) {
       birthDate: formatDate(birthDate),
       signupDate: formatDate(moment()),
     };
-    await userService.createAccount(newUser);
+    await userService.createUser(newUser);
 
     return {
       message: "userRegistered",
-      data: await userService.getAccountUser(id),
+      data: await userService.getAuthUser(id),
     };
-  } else return { message: "acctAlreadyExists" };
+  } else return { message: "userAlreadyExists" };
 }
 
 export async function logInUser(loginFormData) {
   const { email, password } = loginFormData;
-  const existingAcctCreds = await userService.getAccountLogin(email);
+  const existingAcctCreds = await userService.getLogin(email);
 
   if (existingAcctCreds) {
     const passwordsMatch = await bcrypt.compare(
@@ -51,10 +51,10 @@ export async function logInUser(loginFormData) {
 
       return {
         message: "userAuthenticated",
-        data: await userService.getAccountUser(userId),
+        data: await userService.getAuthUser(userId),
       };
     } else return { message: "incorrectCredentials" };
-  } else return { message: "acctDoesntExist" };
+  } else return { message: "userDoesntExist" };
 }
 
 /* HELPER FUNCTIONS */
