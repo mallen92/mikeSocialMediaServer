@@ -1,7 +1,7 @@
 import { UniqueNumber } from "unique-string-generator";
 import { client } from "../redis.js";
 
-export async function setUserSession(obj) {
+export async function setSession(obj) {
   const key = UniqueNumber();
 
   await client.hSet(key, obj);
@@ -9,7 +9,7 @@ export async function setUserSession(obj) {
   return key;
 }
 
-export async function getUserSession(key) {
+export async function getSession(key) {
   let account;
   const keyExists = await client.exists(key);
 

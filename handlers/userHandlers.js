@@ -8,7 +8,7 @@ router.get("/session", async (req, res) => {
   const cachedUserKey = req.query.key;
 
   try {
-    const response = await userService.getUserSession(cachedUserKey);
+    const response = await userService.getSession(cachedUserKey);
 
     if (response.message === "Session found")
       res.status(200).json(response.data);

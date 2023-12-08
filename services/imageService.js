@@ -1,7 +1,7 @@
 import fs from "fs";
 import { UniqueString } from "unique-string-generator";
 import "dotenv/config";
-import * as appDao from "../database/appDao.js";
+import * as appDao from "../database/userDao.js";
 import * as imageBao from "../database/imageBao.js";
 
 const defaultPicFilename = process.env.DEFAULT_PROF_PIC;
