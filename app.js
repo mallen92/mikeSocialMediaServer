@@ -1,21 +1,47 @@
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import express from "express";
-import { redisConnect } from "./redis.js";
-import { logger } from "./logs/logger.js";
-import authenticationHandlers from "./handlers/authenticationHandlers.js";
-import imageHandlers from "./handlers/imageHandlers.js";
+/*--------------- 3RD PARTY MODULES ----------------*/
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const express = require("express");
+const redis = require("redis");
 
+/*----------------- NODE MODULES ------------------*/
+const path = require("path");
+
+/*----------------- CONFIG MODULES ------------------*/
+const corsOptions = require("./cors/corsOptions");
+const logger = require("./logs/logger");
+
+/*----------------- HANDLER MODULES ------------------*/
+const rootHandlers = require("./handlers/rootHandlers");
+
+/*----------------- SERVER CONFIGURATIONS ------------------*/
+const redisClient = redis.createClient();
 const app = express();
-const PORT = 3001;
-app.use(bodyParser.json());
-app.use(cookieParser());
-app.use(cors());
-app.use("/auth", authenticationHandlers);
-app.use("/images", imageHandlers);
+const PORT = process.env.PORT || 3001;
 
-redisConnect()
+/*-------------- CONFIGURATION MIDDLEWARE ---------------*/
+app.use(cookieParser());
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
+
+/*---------------- HANDLER MIDDLEWARE -----------------*/
+app.use(rootHandlers);
+
+/*---------------- 404 MIDDLEWARE -----------------*/
+app.all("*", (req, res) => {
+  res.status(404);
+  if (req.accepts("html")) {
+    res.sendFile(path.join(__dirname, "views", "404.html"));
+  } else if (req.accepts("json")) {
+    res.json({ message: "404 Not Found" });
+  } else {
+    res.type("txt").send("404 Not Found");
+  }
+});
+
+redisClient
+  .connect()
   .then(() =>
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
