@@ -1,33 +1,38 @@
 import { Router } from "express";
 import multer from "multer";
-import verifyToken from "../middleware/verifyToken.js";
+import verifyAccessToken from "../middleware/verifyAccessToken.js";
 import * as imageService from "../services/imageService.js";
 import { logger } from "../logs/logger.js";
 
 const router = Router();
 const upload = multer();
 
-router.post("/", verifyToken, upload.single("image"), async (req, res) => {
-  try {
-    const multerFile = req.file;
-    const user = req.user;
-    const response = await imageService.updateUserPic(user, multerFile);
+router.post(
+  "/",
+  verifyAccessToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const multerFile = req.file;
+      const user = req.user;
+      const response = await imageService.updateUserPic(user, multerFile);
 
-    if (response.message === "uploadSuccess") {
-      res.status(200).json({
-        picUrl: response.newPicUrl,
-        picFilename: response.newPicFilename,
-      });
+      if (response.message === "uploadSuccess") {
+        res.status(200).json({
+          picUrl: response.newPicUrl,
+          picFilename: response.newPicFilename,
+        });
+      }
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Server error. Please contact user support." });
+      logger.error({ message: error });
     }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Server error. Please contact user support." });
-    logger.error({ message: error });
   }
-});
+);
 
-router.delete("/", verifyToken, async (req, res) => {
+router.delete("/", verifyAccessToken, async (req, res) => {
   try {
     const user = req.user;
     const response = await imageService.deleteUserPic(user);
