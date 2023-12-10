@@ -2,7 +2,6 @@
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const express = require("express");
-const redis = require("redis");
 
 /*----------------- NODE MODULES ------------------*/
 const path = require("path");
@@ -10,12 +9,13 @@ const path = require("path");
 /*----------------- CONFIG MODULES ------------------*/
 const corsOptions = require("./cors/corsOptions");
 const logger = require("./logs/logger");
+const redisClient = require("./redisClient");
 
 /*----------------- HANDLER MODULES ------------------*/
 const rootHandlers = require("./handlers/rootHandlers");
+const authHandlers = require("./handlers/authHandlers");
 
 /*----------------- SERVER CONFIGURATIONS ------------------*/
-const redisClient = redis.createClient();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -27,6 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 /*---------------- HANDLER MIDDLEWARE -----------------*/
 app.use(rootHandlers);
+app.use("/auth", authHandlers);
 
 /*---------------- 404 MIDDLEWARE -----------------*/
 app.all("*", (req, res) => {

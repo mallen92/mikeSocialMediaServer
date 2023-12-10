@@ -1,11 +1,11 @@
-import "dotenv/config";
-import fs from "fs";
-import {
+require("dotenv").config();
+const {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
+} = require("@aws-sdk/client-s3");
+const fs = require("fs");
 
 const region = process.env.AWS_REGION;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -19,7 +19,7 @@ const client = new S3Client({
 
 const Bucket = process.env.S3_BUCKET;
 
-export async function getImage(Key) {
+async function getImage(Key) {
   const command = new GetObjectCommand({
     Bucket,
     Key,
@@ -28,7 +28,7 @@ export async function getImage(Key) {
   return await client.send(command);
 }
 
-export async function uploadImage(fileURL, Key) {
+async function uploadImage(fileURL, Key) {
   const Body = fs.createReadStream(fileURL);
 
   const command = new PutObjectCommand({
@@ -40,7 +40,7 @@ export async function uploadImage(fileURL, Key) {
   return await client.send(command);
 }
 
-export async function deleteImage(Key) {
+async function deleteImage(Key) {
   const command = new DeleteObjectCommand({
     Bucket,
     Key,
@@ -48,3 +48,5 @@ export async function deleteImage(Key) {
 
   return await client.send(command);
 }
+
+module.exports = { getImage, uploadImage, deleteImage };

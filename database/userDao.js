@@ -1,11 +1,11 @@
-import "dotenv/config";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
+require("dotenv").config();
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const {
   DynamoDBDocumentClient,
   QueryCommand,
   BatchWriteCommand,
   GetCommand,
-} from "@aws-sdk/lib-dynamodb";
+} = require("@aws-sdk/lib-dynamodb");
 
 const region = process.env.AWS_REGION;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -21,7 +21,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TableName = process.env.DDB_TABLE_NAME;
 const IndexName = process.env.DDB_INDEX_NAME;
 
-export async function getLogin(acctEmail) {
+async function getLogin(acctEmail) {
   const command = new QueryCommand({
     TableName,
     IndexName,
@@ -34,7 +34,7 @@ export async function getLogin(acctEmail) {
   return await docClient.send(command);
 }
 
-export async function putUser(user) {
+async function putUser(user) {
   const {
     id,
     firstName,
@@ -89,7 +89,7 @@ export async function putUser(user) {
   return await docClient.send(command);
 }
 
-export async function getUser(id) {
+async function getUser(id) {
   const command = new GetCommand({
     TableName,
     Key: { PK: `u#${id}`, SK: `u#${id}#user` },
@@ -97,3 +97,5 @@ export async function getUser(id) {
 
   return await docClient.send(command);
 }
+
+module.exports = { getLogin, putUser, getUser };

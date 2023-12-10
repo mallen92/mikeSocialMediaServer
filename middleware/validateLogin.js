@@ -1,4 +1,4 @@
-export default function validateLogin(req, res, next) {
+function validateLogin(req, res, next) {
   if (!req.body.email || req.body.email.trim() === "") {
     res.status(400).json({ message: "Please enter an email." });
   } else {
@@ -9,3 +9,5 @@ export default function validateLogin(req, res, next) {
     }
   }
 }
+
+module.exports = validateLogin;

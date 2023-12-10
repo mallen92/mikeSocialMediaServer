@@ -1,7 +1,14 @@
-import { UniqueNumber } from "unique-string-generator";
-import { client } from "../redis.js";
+/*--------------- 3RD PARTY MODULES ----------------*/
+const redis = require("redis");
+const { UniqueNumber } = require("unique-string-generator");
 
-export async function setSession(obj) {
+/*----------------- CONFIG MODULES ------------------*/
+const redisClient = require("../redisClient");
+
+/*--------------- CACHE CONFIGURATIONS ----------------*/
+const client = redisClient;
+
+async function setSession(obj) {
   const key = UniqueNumber();
 
   await client.hSet(key, obj);
@@ -9,7 +16,7 @@ export async function setSession(obj) {
   return key;
 }
 
-export async function getSession(key) {
+async function getSession(key) {
   let user;
   const keyExists = await client.exists(key);
 
@@ -17,7 +24,9 @@ export async function getSession(key) {
   return user;
 }
 
-export async function clearSession(key) {
+async function clearSession(key) {
   const result = await client.del(key);
   return result;
 }
+
+module.exports = { setSession, getSession, clearSession };

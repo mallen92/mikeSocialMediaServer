@@ -1,16 +1,24 @@
-import { Router } from "express";
-import { logger } from "../logs/logger.js";
-import validateSignup from "../middleware/validateSignup.js";
-import validateLogin from "../middleware/validateLogin.js";
-import * as authenticationService from "../services/authenticationService.js";
-import jwt from "jsonwebtoken";
+/*--------------- 3RD PARTY MODULES ----------------*/
+const express = require("express");
+const jwt = require("jsonwebtoken");
 
-const router = Router();
+/*----------------- CONFIG MODULES ------------------*/
+const logger = require("../logs/logger");
+
+/*----------------- MIDDLEWARE MODULES ------------------*/
+const validateSignup = require("../middleware/validateSignup");
+const validateLogin = require("../middleware/validateLogin");
+
+/*--------------- SERVICE MODULES ----------------*/
+const authService = require("../services/authService");
+
+/*----------------- HANDLER CONFIGURATIONS ------------------*/
+const router = express.Router();
 
 router.post("/signup", validateSignup, async (req, res) => {
   try {
     const signupFormData = req.body;
-    const response = await authenticationService.signUpUser(signupFormData);
+    const response = await authService.signUpUser(signupFormData);
 
     switch (response.message) {
       case "userRegistered":
@@ -43,7 +51,7 @@ router.post("/signup", validateSignup, async (req, res) => {
 router.post("/login", validateLogin, async (req, res) => {
   try {
     const loginCreds = req.body;
-    const response = await authenticationService.logInUser(loginCreds);
+    const response = await authService.logInUser(loginCreds);
 
     switch (response.message) {
       case "userAuthenticated":
@@ -83,7 +91,7 @@ router.get("/refresh", async (req, res) => {
     if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const foundUser = await authenticationService.getSessionFromCache(
+    const foundUser = await authService.getSessionFromCache(
       verified.sessionKey
     );
     if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
@@ -119,7 +127,7 @@ router.post("/logout", async (req, res) => {
     if (!refreshToken) return res.status(204);
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    await authenticationService.clearSessionFromCache(verified.sessionKey);
+    await authService.clearSessionFromCache(verified.sessionKey);
 
     res.clearCookie("jwt", { httpOnly: true, sameSite: "None" });
     res.json({ message: "Cookie cleared" });
@@ -131,4 +139,4 @@ router.post("/logout", async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

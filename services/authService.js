@@ -1,13 +1,18 @@
-import "dotenv/config";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import moment from "moment";
-import { UniqueString } from "unique-string-generator";
-import { createUser, getLogin, getUser } from "./userService.js";
-import { getUserPic } from "./imageService.js";
-import { getSession, clearSession } from "../cache/sessionCache.js";
+/*--------------- 3RD PARTY MODULES ----------------*/
+require("dotenv").config();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const moment = require("moment");
+const { UniqueString } = require("unique-string-generator");
 
-export async function signUpUser(signupFormData) {
+/*--------------- SERVICE MODULES ----------------*/
+const { createUser, getLogin, getUser } = require("./userService");
+const { getUserPic } = require("./imageService");
+
+/*--------------- CACHE MODULES ----------------*/
+const { getSession, clearSession } = require("../cache/sessionCache");
+
+async function signUpUser(signupFormData) {
   for (const property in signupFormData) {
     signupFormData[property] = signupFormData[property].trim();
   }
@@ -44,7 +49,7 @@ export async function signUpUser(signupFormData) {
   } else return { message: "userAlreadyExists" };
 }
 
-export async function logInUser(loginFormData) {
+async function logInUser(loginFormData) {
   const { email, password } = loginFormData;
   const existingAcctCreds = await getLogin(email);
 
@@ -69,13 +74,13 @@ export async function logInUser(loginFormData) {
   } else return { message: "userDoesntExist" };
 }
 
-export async function getSessionFromCache(key) {
+async function getSessionFromCache(key) {
   let user = await getSession(key);
   user.picUrl = await getUserPic(user.picFilename);
   return user;
 }
 
-export async function clearSessionFromCache(key) {
+async function clearSessionFromCache(key) {
   const response = await clearSession(key);
   if (!response) throw new Error("Error: Session was not removed from cache");
   return response;
@@ -106,3 +111,10 @@ function getTokens(id, sessionKey) {
 }
 
 /* END HELPER FUNCTIONS */
+
+module.exports = {
+  signUpUser,
+  logInUser,
+  getSessionFromCache,
+  clearSessionFromCache,
+};

@@ -1,6 +1,6 @@
-import moment from "moment";
+const moment = require("moment");
 
-export default function validateSignup(req, res, next) {
+function validateSignup(req, res, next) {
   const userEmail = req.body.email;
 
   if (!userEmail || userEmail.trim() === "") {
@@ -100,3 +100,5 @@ function isNameFormatValid(name) {
 }
 
 /* END FORMAT VALIDATORS */
+
+module.exports = validateSignup;
