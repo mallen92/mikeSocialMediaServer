@@ -25,7 +25,7 @@ router.post("/signup", validateSignup, async (req, res) => {
         res.cookie("jwt", response.refreshToken, {
           httpOnly: true,
           sameSite: "None",
-          maxAge: 24 * 60 * 60 * 1000,
+          secure: true,
         });
 
         res.status(200).json(response.data);
@@ -58,7 +58,7 @@ router.post("/login", validateLogin, async (req, res) => {
         res.cookie("jwt", response.refreshToken, {
           httpOnly: true,
           sameSite: "None",
-          maxAge: 24 * 60 * 60 * 1000,
+          secure: true,
         });
 
         res.status(200).json(response.data);
@@ -108,11 +108,17 @@ router.get("/refresh", async (req, res) => {
     res.status(200).json(foundUser);
   } catch (error) {
     switch (error.message) {
-      case "jwt expired":
+      case "jwt expired": {
+        res.clearCookie("jwt", {
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        });
         res
           .status(403)
           .json({ message: "Your session has expired. Please log in." });
         break;
+      }
       default:
         res.status(403).json({ message: "Access denied" });
         logger.error({ message: error });
@@ -124,12 +130,15 @@ router.get("/refresh", async (req, res) => {
 router.post("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies?.jwt;
-    if (!refreshToken) return res.status(204);
+    if (!refreshToken)
+      return res
+        .status(204)
+        .send({ messgae: "Cookie or JWT token not present" });
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     await authService.clearSessionFromCache(verified.sessionKey);
 
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "None" });
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
     res.json({ message: "Cookie cleared" });
   } catch (error) {
     res
