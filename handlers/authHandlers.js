@@ -87,14 +87,15 @@ router.post("/login", validateLogin, async (req, res) => {
 router.get("/refresh", async (req, res) => {
   try {
     const refreshToken = req.cookies?.jwt;
-
-    if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
+    if (!refreshToken) {
+      logger.error({ message: "No refresh token was sent" });
+      return res.status(401).json({ message: "401 Unauthorized" });
+    }
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     const foundUser = await authService.getSessionFromCache(
       verified.sessionKey
     );
-    if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
 
     const foundUserId = foundUser.id;
     const accessToken = jwt.sign(
@@ -114,13 +115,11 @@ router.get("/refresh", async (req, res) => {
           sameSite: "none",
           secure: true,
         });
-        res
-          .status(403)
-          .json({ message: "Your session has expired. Please log in." });
+        res.status(403).json({ message: "Please log in." });
         break;
       }
       default:
-        res.status(403).json({ message: "Access denied" });
+        res.status(401).json({ message: "An unrecognized token was sent" });
         logger.error({ message: error });
         break;
     }
@@ -131,9 +130,7 @@ router.post("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies?.jwt;
     if (!refreshToken)
-      return res
-        .status(204)
-        .send({ messgae: "Cookie or JWT token not present" });
+      return res.status(204).json({ messgae: "No refresh token was sent" });
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     await authService.clearSessionFromCache(verified.sessionKey);
