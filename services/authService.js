@@ -6,7 +6,7 @@ const moment = require("moment");
 const { UniqueString } = require("unique-string-generator");
 
 /*--------------- SERVICE MODULES ----------------*/
-const { createUser, getLogin, getUser } = require("./userService");
+const { createUser, getLogin, getUserAccount } = require("./userService");
 const { getUserPic } = require("./imageService");
 
 /*--------------- CACHE MODULES ----------------*/
@@ -37,7 +37,7 @@ async function signUpUser(signupFormData) {
       signupDate: formatDate(moment()),
     };
     await createUser(newUser);
-    let { user, sessionKey } = await getUser(id);
+    let { user, sessionKey } = await getUserAccount(id);
     const tokens = getTokens(id, sessionKey);
     user.accessToken = tokens.accessToken;
 
@@ -61,7 +61,7 @@ async function logInUser(loginFormData) {
 
     if (passwordsMatch) {
       const userId = existingAcctCreds.PK.split("#")[1];
-      let { user, sessionKey } = await getUser(userId);
+      let { user, sessionKey } = await getUserAccount(userId);
       const tokens = getTokens(userId, sessionKey);
       user.accessToken = tokens.accessToken;
 

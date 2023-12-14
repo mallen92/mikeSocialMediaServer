@@ -129,8 +129,12 @@ router.get("/refresh", async (req, res) => {
 router.post("/logout", async (req, res) => {
   try {
     const refreshToken = req.cookies?.jwt;
-    if (!refreshToken)
-      return res.status(204).json({ messgae: "No refresh token was sent" });
+    if (!refreshToken) {
+      logger.error({ message: "No refresh token was sent to be cleared." });
+      return res
+        .status(400)
+        .json({ message: "There was an error logging out the user." });
+    }
 
     const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     await authService.clearSessionFromCache(verified.sessionKey);
