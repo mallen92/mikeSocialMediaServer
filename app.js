@@ -11,6 +11,7 @@ const redisClient = require("./redisClient");
 /*----------------- HANDLER MODULES ------------------*/
 const authHandlers = require("./handlers/authHandlers");
 const userHandlers = require("./handlers/userHandlers");
+const imageHandlers = require("./handlers/imageHandlers");
 
 /*----------------- SERVER CONFIGURATIONS ------------------*/
 const app = express();
@@ -24,6 +25,7 @@ app.use(express.json());
 /*---------------- PATH MIDDLEWARE -----------------*/
 app.use("/auth", authHandlers);
 app.use("/user", userHandlers);
+app.use("/images", imageHandlers);
 
 redisClient
   .connect()

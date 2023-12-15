@@ -1,10 +1,19 @@
-import { Router } from "express";
-import multer from "multer";
-import verifyAccessToken from "../middleware/verifyAccessToken.js";
-import * as imageService from "../services/imageService.js";
-import { logger } from "../logs/logger.js";
+/*--------------- 3RD PARTY MODULES ----------------*/
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const multer = require("multer");
 
-const router = Router();
+/*----------------- CONFIG MODULES ------------------*/
+const logger = require("../logs/logger");
+
+/*----------------- MIDDLEWARE MODULES ------------------*/
+const verifyAccessToken = require("../middleware/verifyAccessToken");
+
+/*--------------- SERVICE MODULES ----------------*/
+const imageService = require("../services/imageService");
+
+/*----------------- HANDLER CONFIGURATIONS ------------------*/
+const router = express.Router();
 const upload = multer();
 
 router.post(
@@ -12,10 +21,29 @@ router.post(
   verifyAccessToken,
   upload.single("image"),
   async (req, res) => {
+    const multerFile = req.file;
+    const userId = req.user;
+    const profileCacheKey = req.get("profile-cache-key");
+
+    const refreshToken = req.cookies?.jwt;
+    if (!refreshToken) {
+      logger.error({ message: "No refresh token was sent" });
+      return res.status(401).json({ message: "401 Unauthorized" });
+    }
+
     try {
-      const multerFile = req.file;
-      const user = req.user;
-      const response = await imageService.updateUserPic(user, multerFile);
+      const verified = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+      const sessionCacheKey = verified.sessionKey;
+
+      const response = await imageService.updateUserPic(
+        multerFile,
+        userId,
+        sessionCacheKey,
+        profileCacheKey
+      );
 
       if (response.message === "uploadSuccess") {
         res.status(200).json({
@@ -52,4 +80,4 @@ router.delete("/", verifyAccessToken, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

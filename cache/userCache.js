@@ -24,4 +24,16 @@ async function getUser(key) {
   return user;
 }
 
-module.exports = { setUser, getUser };
+async function updatePicFilenameInCache(sessionKey, profileKey, filename) {
+  const reply1 = await client.hSet(sessionKey, "picFilename", filename);
+  const profileKeyExists = await client.exists(profileKey);
+  let reply2 = 0;
+
+  if (profileKeyExists)
+    reply2 = await client.hSet(profileKey, "picFilename", filename);
+
+  if (reply1 > 0 || reply2 > 0)
+    throw new Error("User pic was not properly updated in cache.");
+}
+
+module.exports = { setUser, getUser, updatePicFilenameInCache };

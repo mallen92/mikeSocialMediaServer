@@ -23,7 +23,7 @@ async function signUpUser(signupFormData) {
   if (!existingUser) {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-    const id = UniqueString();
+    const id = UniqueString().substring(15);
     const picFilename = process.env.DEFAULT_PROF_PIC;
 
     const newUser = {

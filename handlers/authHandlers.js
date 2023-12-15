@@ -97,14 +97,10 @@ router.get("/refresh", async (req, res) => {
       verified.sessionKey
     );
 
-    const foundUserId = foundUser.id;
-    const accessToken = jwt.sign(
-      { foundUserId },
-      process.env.ACCESS_TOKEN_SECRET,
-      {
-        expiresIn: "10m",
-      }
-    );
+    const id = foundUser.id;
+    const accessToken = jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: "10m",
+    });
     foundUser.accessToken = accessToken;
     res.status(200).json(foundUser);
   } catch (error) {

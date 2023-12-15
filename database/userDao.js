@@ -5,6 +5,7 @@ const {
   QueryCommand,
   BatchWriteCommand,
   GetCommand,
+  UpdateCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
 const region = process.env.AWS_REGION;
@@ -98,4 +99,18 @@ async function getUser(id) {
   return await docClient.send(command);
 }
 
-module.exports = { getLogin, putUser, getUser };
+async function updatePicFilenameInDB(userId, filename) {
+  const command = new UpdateCommand({
+    TableName,
+    Key: { PK: `u#${userId}`, SK: `u#${userId}#user` },
+    UpdateExpression: "SET picFilename = :filename",
+    ExpressionAttributeValues: {
+      ":filename": filename,
+    },
+    ReturnValues: "UPDATED_OLD",
+  });
+
+  return await docClient.send(command);
+}
+
+module.exports = { getLogin, putUser, getUser, updatePicFilenameInDB };

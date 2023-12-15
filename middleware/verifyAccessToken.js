@@ -1,18 +1,29 @@
-import "dotenv/config";
-import jwt from "jsonwebtoken";
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
-export default function verifyAccessToken(req, res, next) {
+function verifyAccessToken(req, res, next) {
   try {
     const authHeader = req.headers?.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer "))
       return res.status(401).json({ message: "Unauthorized" });
 
-    const accessToken = req.headers.authorization.split(" ")[1];
+    const accessToken = authHeader.split(" ")[1];
     const verified = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
     req.user = verified.id;
     next();
   } catch (error) {
-    res.status(403).json({ message: "Forbidden" });
+    switch (error.message) {
+      case "jwt expired": {
+        res.status(403).json({ message: "Access token expired" });
+        break;
+      }
+      default:
+        res.status(401).json({ message: "An unrecognized token was sent" });
+        logger.error({ message: error });
+        break;
+    }
   }
 }
+
+module.exports = verifyAccessToken;
