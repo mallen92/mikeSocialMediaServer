@@ -61,9 +61,24 @@ router.post(
 );
 
 router.delete("/", verifyAccessToken, async (req, res) => {
+  const userId = req.user;
+  const profileCacheKey = req.get("profile-cache-key");
+
+  const refreshToken = req.cookies?.jwt;
+  if (!refreshToken) {
+    logger.error({ message: "No refresh token was sent" });
+    return res.status(401).json({ message: "401 Unauthorized" });
+  }
+
   try {
-    const user = req.user;
-    const response = await imageService.deleteUserPic(user);
+    const verified = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const sessionCacheKey = verified.sessionKey;
+
+    const response = await imageService.deleteUserPic(
+      userId,
+      sessionCacheKey,
+      profileCacheKey
+    );
 
     if (response.message === "deleteSuccess")
       res.status(200).json({

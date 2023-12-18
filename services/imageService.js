@@ -49,4 +49,26 @@ async function updateUserPic(
   return { message: "uploadSuccess", newPicUrl, newPicFilename };
 }
 
-module.exports = { getUserPic, updateUserPic };
+async function deleteUserPic(userId, sessionCacheKey, profileCacheKey) {
+  const output = await updatePicFilenameInDB(userId, defaultPicFilename);
+
+  if (output.Attributes.picFilename === defaultPicFilename)
+    return { message: "deleteError" };
+
+  await updatePicFilenameInCache(
+    sessionCacheKey,
+    profileCacheKey,
+    defaultPicFilename
+  );
+
+  await deleteImage(output.Attributes.picFilename);
+  const newPicUrl = await getUserPic(defaultPicFilename);
+
+  return {
+    message: "deleteSuccess",
+    newPicUrl,
+    newPicFilename: defaultPicFilename,
+  };
+}
+
+module.exports = { getUserPic, updateUserPic, deleteUserPic };
