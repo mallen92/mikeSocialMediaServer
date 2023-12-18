@@ -50,7 +50,7 @@ async function getUserProfile(
     delete user.PK;
 
     if (requestingUserId) {
-      user.friend_status = await getFriendStatus(
+      user.friendStatus = await getFriendStatus(
         requestedUserId,
         requestingUserId
       );
