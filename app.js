@@ -12,6 +12,7 @@ const redisClient = require("./redisClient");
 const authHandlers = require("./handlers/authHandlers");
 const userHandlers = require("./handlers/userHandlers");
 const imageHandlers = require("./handlers/imageHandlers");
+const connectHandlers = require("./handlers/connectHandlers");
 
 /*----------------- SERVER CONFIGURATIONS ------------------*/
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use("/auth", authHandlers);
 app.use("/user", userHandlers);
 app.use("/images", imageHandlers);
+app.use("/connect", connectHandlers);
 
 redisClient
   .connect()

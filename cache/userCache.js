@@ -12,7 +12,7 @@ async function setUser(obj) {
   const key = UniqueNumber();
 
   await client.hSet(key, obj);
-  await client.expire(key, 600);
+  await client.expire(key, 3600);
   return key;
 }
 
@@ -26,9 +26,8 @@ async function getUser(key) {
 
 async function updatePicFilenameInCache(sessionKey, profileKey, filename) {
   const reply1 = await client.hSet(sessionKey, "picFilename", filename);
-  const profileKeyExists = await client.exists(profileKey);
   let reply2 = 0;
-
+  const profileKeyExists = await client.exists(profileKey);
   if (profileKeyExists)
     reply2 = await client.hSet(profileKey, "picFilename", filename);
 
@@ -36,4 +35,19 @@ async function updatePicFilenameInCache(sessionKey, profileKey, filename) {
     throw new Error("User pic was not properly updated in cache.");
 }
 
-module.exports = { setUser, getUser, updatePicFilenameInCache };
+async function updateFriendStatus(key, status) {
+  let reply = 0;
+  const keyExists = await client.exists(key);
+
+  if (keyExists) reply = await client.hSet(key, "friendStatus", status);
+
+  if (reply > 0)
+    throw new Error("Friend status was not properly updated in cache.");
+}
+
+module.exports = {
+  setUser,
+  getUser,
+  updatePicFilenameInCache,
+  updateFriendStatus,
+};

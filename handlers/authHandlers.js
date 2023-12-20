@@ -101,7 +101,7 @@ router.get("/refresh", async (req, res) => {
       { id: foundUser.id },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "10m",
+        expiresIn: "1h",
       }
     );
     foundUser.accessToken = accessToken;

@@ -3,6 +3,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DynamoDBDocumentClient,
   BatchGetCommand,
+  BatchWriteCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
 const region = process.env.AWS_REGION;
@@ -38,4 +39,138 @@ async function getStatus(requestedUserId, requestingUserId) {
   return await docClient.send(command);
 }
 
-module.exports = { getStatus };
+async function createFriendRequest(reqInfo) {
+  const { recipId, senderId } = reqInfo;
+
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${senderId}#requests_out`,
+              SK: `u#${recipId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${recipId}#requests_in`,
+              SK: `u#${senderId}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+async function deleteFriendRequest(userOut, userIn) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userOut}#requests_out`,
+              SK: `u#${userIn}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userIn}#requests_in`,
+              SK: `u#${userOut}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+async function acceptFriendRequest(reqInfo) {
+  const { recipId, senderId } = reqInfo;
+
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${senderId}#requests_out`,
+              SK: `u#${recipId}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${recipId}#requests_in`,
+              SK: `u#${senderId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${senderId}#friends`,
+              SK: `u#${recipId}`,
+            },
+          },
+        },
+        {
+          PutRequest: {
+            Item: {
+              PK: `u#${recipId}#friends`,
+              SK: `u#${senderId}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+async function removeFriend(userId, userToRemove) {
+  const command = new BatchWriteCommand({
+    RequestItems: {
+      TheSocial: [
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userId}#friends`,
+              SK: `u#${userToRemove}`,
+            },
+          },
+        },
+        {
+          DeleteRequest: {
+            Key: {
+              PK: `u#${userToRemove}#friends`,
+              SK: `u#${userId}`,
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  return await docClient.send(command);
+}
+
+module.exports = {
+  getStatus,
+  createFriendRequest,
+  deleteFriendRequest,
+  acceptFriendRequest,
+  removeFriend,
+};
