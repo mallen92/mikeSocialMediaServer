@@ -19,7 +19,6 @@ async function setUser(obj) {
 async function getUser(key) {
   let user;
   const keyExists = await client.exists(key);
-
   if (keyExists) user = await client.hGetAll(key);
   return user;
 }

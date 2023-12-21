@@ -20,58 +20,54 @@ async function signUpUser(signupFormData) {
   const { email, password, firstName, lastName, birthDate } = signupFormData;
 
   const existingUser = await getLogin(email);
-  if (!existingUser) {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const id = UniqueString().substring(15);
-    const picFilename = process.env.DEFAULT_PROF_PIC;
+  if (existingUser) throw new Error("userAlreadyExists");
 
-    const newUser = {
-      id,
-      firstName,
-      lastName,
-      picFilename,
-      email,
-      password: hashedPassword,
-      birthDate: formatDate(birthDate),
-      signupDate: formatDate(moment()),
-    };
-    await createUser(newUser);
-    let { user, sessionKey } = await getUserAccount(id);
-    const tokens = getTokens(id, sessionKey);
-    user.accessToken = tokens.accessToken;
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(password, salt);
+  const id = UniqueString().substring(15);
+  const picFilename = process.env.DEFAULT_PROF_PIC;
 
-    return {
-      message: "userRegistered",
-      data: user,
-      refreshToken: tokens.refreshToken,
-    };
-  } else return { message: "userAlreadyExists" };
+  const newUser = {
+    id,
+    firstName,
+    lastName,
+    picFilename,
+    email,
+    password: hashedPassword,
+    birthDate: formatDate(birthDate),
+    signupDate: formatDate(moment()),
+  };
+  await createUser(newUser);
+  let { user, sessionKey } = await getUserAccount(id);
+  const tokens = getTokens(id, sessionKey);
+  user.accessToken = tokens.accessToken;
+
+  return {
+    data: user,
+    refreshToken: tokens.refreshToken,
+  };
 }
 
 async function logInUser(loginFormData) {
   const { email, password } = loginFormData;
   const existingAcctCreds = await getLogin(email);
+  if (!existingAcctCreds) throw new Error("userDoesntExist");
 
-  if (existingAcctCreds) {
-    const passwordsMatch = await bcrypt.compare(
-      password,
-      existingAcctCreds.acctPassword
-    );
+  const passwordsMatch = await bcrypt.compare(
+    password,
+    existingAcctCreds.acctPassword
+  );
+  if (!passwordsMatch) throw new Error("incorrectCredentials");
 
-    if (passwordsMatch) {
-      const userId = existingAcctCreds.PK.split("#")[1];
-      let { user, sessionKey } = await getUserAccount(userId);
-      const tokens = getTokens(userId, sessionKey);
-      user.accessToken = tokens.accessToken;
+  const userId = existingAcctCreds.PK.split("#")[1];
+  let { user, sessionKey } = await getUserAccount(userId);
+  const tokens = getTokens(userId, sessionKey);
+  user.accessToken = tokens.accessToken;
 
-      return {
-        message: "userAuthenticated",
-        data: user,
-        refreshToken: tokens.refreshToken,
-      };
-    } else return { message: "incorrectCredentials" };
-  } else return { message: "userDoesntExist" };
+  return {
+    data: user,
+    refreshToken: tokens.refreshToken,
+  };
 }
 
 async function getSessionFromCache(key) {
@@ -81,9 +77,7 @@ async function getSessionFromCache(key) {
 }
 
 async function clearSessionFromCache(key) {
-  const response = await clearSession(key);
-  if (!response) throw new Error("Error: Session was not removed from cache");
-  return response;
+  await clearSession(key);
 }
 
 /* HELPER FUNCTIONS */

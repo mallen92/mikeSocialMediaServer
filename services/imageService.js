@@ -46,26 +46,23 @@ async function updateUserPic(
   if (oldPicFilename !== defaultPicFilename) await deleteImage(oldPicFilename);
 
   const newPicUrl = await getUserPic(newPicFilename);
-  return { message: "uploadSuccess", newPicUrl, newPicFilename };
+  return { newPicUrl, newPicFilename };
 }
 
 async function deleteUserPic(userId, sessionCacheKey, profileCacheKey) {
   const output = await updatePicFilenameInDB(userId, defaultPicFilename);
-
   if (output.Attributes.picFilename === defaultPicFilename)
-    return { message: "deleteError" };
+    throw new Error("deleteError");
 
   await updatePicFilenameInCache(
     sessionCacheKey,
     profileCacheKey,
     defaultPicFilename
   );
-
   await deleteImage(output.Attributes.picFilename);
-  const newPicUrl = await getUserPic(defaultPicFilename);
 
+  const newPicUrl = await getUserPic(defaultPicFilename);
   return {
-    message: "deleteSuccess",
     newPicUrl,
     newPicFilename: defaultPicFilename,
   };

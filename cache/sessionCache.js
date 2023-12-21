@@ -10,17 +10,16 @@ const client = redisClient;
 
 async function setSession(obj) {
   const key = UniqueNumber();
-
   await client.hSet(key, obj);
   await client.expire(key, 86400);
   return key;
 }
 
 async function getSession(key) {
-  let user;
   const keyExists = await client.exists(key);
+  if (!keyExists) throw new Error("Session not found");
 
-  if (keyExists) user = await client.hGetAll(key);
+  const user = await client.hGetAll(key);
   return user;
 }
 

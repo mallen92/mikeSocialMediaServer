@@ -47,6 +47,8 @@ async function putUser(user) {
     picFilename,
   } = user;
 
+  let userName = `${firstName} ${lastName}`.toLowerCase();
+
   const command = new BatchWriteCommand({
     RequestItems: {
       TheSocial: [
@@ -65,6 +67,8 @@ async function putUser(user) {
             Item: {
               PK: `u#${id}`,
               SK: `u#${id}#user`,
+              userSearchKey: "user",
+              userName,
               id,
               firstName,
               lastName,
@@ -94,6 +98,7 @@ async function getUser(id) {
   const command = new GetCommand({
     TableName,
     Key: { PK: `u#${id}`, SK: `u#${id}#user` },
+    ProjectionExpression: "id, firstName, lastName, picFilename",
   });
 
   return await docClient.send(command);
