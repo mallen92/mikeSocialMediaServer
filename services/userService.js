@@ -59,7 +59,7 @@ async function getUserProfile(
 }
 
 async function getUserFriends(id, keyword = null, panel = null) {
-  if (keyword.length < 3) throw new Error("invalidKeyword");
+  if (keyword?.length < 3) throw new Error("invalidKeyword");
 
   let output1;
   if (panel) output1 = await friendDao.getFriends(id, 6);
