@@ -58,13 +58,14 @@ async function getUserProfile(
   return user;
 }
 
-async function getUserFriends(id, keyword = null, panel = null) {
+async function getUserFriends(id, keyword = null, panel = false) {
   if (keyword?.length < 3) throw new Error("invalidKeyword");
 
   let output1;
   if (panel) output1 = await friendDao.getFriends(id, 6);
   else output1 = await friendDao.getFriends(id, 25);
   const friendsList = output1.Items;
+  const lastEvaluatedKey = output1.LastEvaluatedKey;
 
   let infoKeys = [];
   for (let i = 0; i < friendsList.length; i++) {
@@ -95,7 +96,7 @@ async function getUserFriends(id, keyword = null, panel = null) {
     info.picUrl = await imageService.getUserPic(info.picFilename);
     delete info.picFilename;
   }
-  return friendsInfoList;
+  return { friends: friendsInfoList, moreFriendsKey: lastEvaluatedKey };
 }
 
 /*---------------------- HELPER FUNCTIONS ----------------------*/

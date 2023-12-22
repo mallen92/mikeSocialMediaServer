@@ -13,13 +13,14 @@ const router = express.Router();
 router.get("/friends", async (req, res) => {
   const requestedUserId = req.query.id;
   const keyword = req.query.keyword;
-  const panel = req.query.panel;
+  const panel = Boolean(req.query.panel);
   let data;
 
   try {
     if (!keyword) {
       if (!panel) data = await userService.getUserFriends(requestedUserId);
-      else data = await userService.getUserFriends(requestedUserId, panel);
+      else
+        data = await userService.getUserFriends(requestedUserId, null, panel);
     } else data = await userService.getUserFriends(requestedUserId, keyword);
     res.status(200).json(data);
   } catch (error) {
