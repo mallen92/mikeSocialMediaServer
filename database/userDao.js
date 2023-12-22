@@ -6,6 +6,7 @@ const {
   BatchWriteCommand,
   GetCommand,
   UpdateCommand,
+  ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 
 const region = process.env.AWS_REGION;
@@ -20,12 +21,11 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 
 const TableName = process.env.DDB_TABLE_NAME;
-const IndexName = process.env.DDB_INDEX_NAME;
 
 async function getLogin(acctEmail) {
   const command = new QueryCommand({
     TableName,
-    IndexName,
+    IndexName: "TheSocialLogins",
     KeyConditionExpression: "acctEmail = :val",
     ExpressionAttributeValues: {
       ":val": acctEmail,
@@ -118,4 +118,20 @@ async function updatePicFilenameInDB(userId, filename) {
   return await docClient.send(command);
 }
 
-module.exports = { getLogin, putUser, getUser, updatePicFilenameInDB };
+async function getUsers() {
+  const command = new ScanCommand({
+    TableName,
+    IndexName: "TheSocialUsers",
+    ProjectionExpression: "id, firstName, lastName, picFilename",
+  });
+
+  return await docClient.send(command);
+}
+
+module.exports = {
+  getLogin,
+  putUser,
+  getUser,
+  updatePicFilenameInDB,
+  getUsers,
+};

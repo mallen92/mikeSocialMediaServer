@@ -77,26 +77,59 @@ async function getUserFriends(id, keyword = null, panel = false) {
     infoKeys.push(key);
   }
   const output2 = await friendDao.getFriendsInfo(infoKeys);
-  let friendsInfoList = output2.Responses.TheSocial;
+  let friends = output2.Responses.TheSocial;
 
   if (keyword) {
     let filteredList = [];
-    for (let i = 0; i < friendsInfoList.length; i++) {
-      const { userName, id } = friendsInfoList[i];
+    for (let i = 0; i < friends.length; i++) {
+      const { userName, id } = friends[i];
 
-      if (userName.includes(keyword) || id.includes(keyword))
-        filteredList.push(friendsInfoList[i]);
+      if (
+        userName.includes(keyword.toLowerCase()) ||
+        id.toLowerCase().includes(keyword.toLowerCase())
+      )
+        filteredList.push(friends[i]);
     }
-    friendsInfoList = filteredList;
+    friends = filteredList;
   }
 
-  for (let i = 0; i < friendsInfoList.length; i++) {
-    const info = friendsInfoList[i];
-    info.resultId = i + 1;
-    info.picUrl = await imageService.getUserPic(info.picFilename);
-    delete info.picFilename;
+  friends = await packageUserList(friends);
+  return {
+    friends,
+    moreFriendsKey: lastEvaluatedKey,
+  };
+}
+
+async function searchUsers(
+  idSearch = null,
+  fNameSearch = null,
+  lNameSearch = null
+) {
+  if (
+    idSearch?.length < 2 ||
+    fNameSearch?.length < 2 ||
+    lNameSearch?.length < 2
+  )
+    throw new Error("invalidKeyword");
+
+  let results = [];
+  const output = await userDao.getUsers();
+  const users = output.Items;
+
+  for (let i = 0; i < users.length; i++) {
+    const { id, firstName, lastName } = users[i];
+
+    if (
+      id.toLowerCase().includes(idSearch?.toLowerCase()) ||
+      firstName.toLowerCase().includes(fNameSearch?.toLowerCase()) ||
+      lastName.toLowerCase().includes(lNameSearch?.toLowerCase())
+    ) {
+      results.push(users[i]);
+    }
   }
-  return { friends: friendsInfoList, moreFriendsKey: lastEvaluatedKey };
+
+  results = await packageUserList(results);
+  return { results };
 }
 
 /*---------------------- HELPER FUNCTIONS ----------------------*/
@@ -119,6 +152,16 @@ async function getFriendStatus(requestedId, requestingId) {
   }
 }
 
+async function packageUserList(list) {
+  for (let i = 0; i < list.length; i++) {
+    const info = list[i];
+    info.resultId = i + 1;
+    info.picUrl = await imageService.getUserPic(info.picFilename);
+    delete info.picFilename;
+  }
+  return list;
+}
+
 /*---------------------- END HELPER FUNCTIONS ----------------------*/
 
 module.exports = {
@@ -127,4 +170,5 @@ module.exports = {
   getUserAccount,
   getUserProfile,
   getUserFriends,
+  searchUsers,
 };
