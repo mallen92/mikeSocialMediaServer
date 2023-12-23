@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/search", async (req, res) => {
+router.post("/search", async (req, res) => {
   const idSearch = req.body.id;
   const fNameSearch = req.body.fName;
   const lNameSearch = req.body.lName;
@@ -44,11 +44,9 @@ router.get("/search", async (req, res) => {
     res.status(200).json(data);
   } catch (error) {
     if (error.message === "invalidKeyword")
-      res
-        .status(400)
-        .json({
-          message: "Search keywords must contain at least 2 characters.",
-        });
+      res.status(400).json({
+        message: "Search keywords must contain at least 2 characters.",
+      });
     else {
       res
         .status(500)
