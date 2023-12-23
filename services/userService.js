@@ -66,6 +66,7 @@ async function getUserFriends(id, keyword = null, panel = false) {
   else output1 = await friendDao.getFriends(id, 25);
   const friendsList = output1.Items;
   const lastEvaluatedKey = output1.LastEvaluatedKey;
+  if (friendsList.length === 0) throw new Error("noFriends");
 
   let infoKeys = [];
   for (let i = 0; i < friendsList.length; i++) {
