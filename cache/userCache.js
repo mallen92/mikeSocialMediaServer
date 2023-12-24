@@ -12,7 +12,7 @@ async function setUser(obj) {
   const key = UniqueNumber();
 
   await client.hSet(key, obj);
-  await client.expire(key, 3600);
+  await client.expire(key, 600);
   return key;
 }
 
