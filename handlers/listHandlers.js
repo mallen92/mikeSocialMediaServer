@@ -24,23 +24,15 @@ router.get("/friends", async (req, res) => {
     } else data = await userService.getUserFriends(requestedUserId, keyword);
     res.status(200).json(data);
   } catch (error) {
-    switch (error.message) {
-      case "invalidKeyword": {
-        res
-          .status(400)
-          .json({ message: "Keyword must contain at least 3 characters." });
-        break;
-      }
-      case "noFriends": {
-        res.status(400).json({ message: "No friends found." });
-        break;
-      }
-      default: {
-        res
-          .status(500)
-          .json({ message: "Server error. Please contact user support." });
-        logger.error({ message: error });
-      }
+    if (error.message === "invalidKeyword")
+      res
+        .status(400)
+        .json({ message: "Keyword must contain at least 3 characters." });
+    else {
+      res
+        .status(500)
+        .json({ message: "Server error. Please contact user support." });
+      logger.error({ message: error });
     }
   }
 });
