@@ -13,8 +13,8 @@ const friendDao = require("../database/friendDao");
 const sessionCache = require("../cache/sessionCache");
 const userCache = require("../cache/userCache");
 
-async function createUser(user) {
-  userDao.putUser(user);
+async function createUser(key, user) {
+  userDao.putUser(key, user);
 }
 
 async function getLogin(acctEmail) {
@@ -22,33 +22,32 @@ async function getLogin(acctEmail) {
   return output.Items[0];
 }
 
-async function getUserAccount(id) {
-  const output = await userDao.getUser(id);
-  const user = output.Item;
-
+async function getUserAccount(userKey) {
+  const output = await userDao.getUserByKey(userKey);
+  let user = output.Item;
+  user.userKey = userKey;
   const sessionKey = await sessionCache.setSession(user);
+
+  delete user.userKey;
   user.picUrl = await imageService.getUserPic(user.picFilename);
   return { user, sessionKey };
 }
 
 async function getUserProfile(
-  requestedUserId,
-  requestingUserId = null,
+  requestedUser,
+  requestingUser = null,
   cachedProfileKey = null
 ) {
   let user;
   if (cachedProfileKey) user = await userCache.getUser(cachedProfileKey);
 
   if (!cachedProfileKey || !user) {
-    const output = await userDao.getUser(requestedUserId);
-    user = output.Item;
+    const output = await userDao.getUserByUsername(requestedUser);
+    user = output.Items[0];
     if (!user) return;
 
-    if (requestingUserId) {
-      user.friendStatus = await getFriendStatus(
-        requestedUserId,
-        requestingUserId
-      );
+    if (requestingUser) {
+      user.friendStatus = await getFriendStatus(requestedUser, requestingUser);
     }
 
     user.cacheKey = await userCache.setUser(user);
@@ -58,12 +57,15 @@ async function getUserProfile(
   return user;
 }
 
-async function getUserFriends(id, keyword = null, panel = false) {
+async function getUserFriends(username, keyword = null, panel = false) {
   if (keyword?.length < 3) throw new Error("invalidKeyword");
 
+  const getKeyResponse = await userDao.getUserKey(username);
+  const userKey = getKeyResponse.Items[0].PK.split("#")[1];
   let output1;
-  if (panel) output1 = await friendDao.getFriends(id, 6);
-  else output1 = await friendDao.getFriends(id, 25);
+
+  if (panel) output1 = await friendDao.getFriends(userKey, 6);
+  else output1 = await friendDao.getFriends(userKey, 25);
   const friendsList = output1.Items;
   const lastEvaluatedKey = output1.LastEvaluatedKey;
   if (friendsList.length === 0) return { friends: friendsList };
@@ -73,7 +75,7 @@ async function getUserFriends(id, keyword = null, panel = false) {
     const batchGetPK = friendsList[i].SK;
     const key = {
       PK: batchGetPK,
-      SK: `${batchGetPK}#user`,
+      SK: batchGetPK,
     };
     infoKeys.push(key);
   }
@@ -83,11 +85,11 @@ async function getUserFriends(id, keyword = null, panel = false) {
   if (keyword) {
     let filteredList = [];
     for (let i = 0; i < friends.length; i++) {
-      const { userName, id } = friends[i];
+      const { userSearchName, username } = friends[i];
 
       if (
-        userName.includes(keyword.toLowerCase()) ||
-        id.toLowerCase().includes(keyword.toLowerCase())
+        userSearchName.includes(keyword.toLowerCase()) ||
+        username.toLowerCase().includes(keyword.toLowerCase())
       )
         filteredList.push(friends[i]);
     }
@@ -102,12 +104,12 @@ async function getUserFriends(id, keyword = null, panel = false) {
 }
 
 async function searchUsers(
-  idSearch = null,
+  usernameSearch = null,
   fNameSearch = null,
   lNameSearch = null
 ) {
   if (
-    idSearch?.length < 2 ||
+    usernameSearch?.length < 2 ||
     fNameSearch?.length < 2 ||
     lNameSearch?.length < 2
   )
@@ -118,10 +120,10 @@ async function searchUsers(
   const users = output.Items;
 
   for (let i = 0; i < users.length; i++) {
-    const { id, firstName, lastName } = users[i];
+    const { username, firstName, lastName } = users[i];
 
     if (
-      id.toLowerCase().includes(idSearch?.toLowerCase()) ||
+      username.toLowerCase().includes(usernameSearch?.toLowerCase()) ||
       firstName.toLowerCase().includes(fNameSearch?.toLowerCase()) ||
       lastName.toLowerCase().includes(lNameSearch?.toLowerCase())
     ) {

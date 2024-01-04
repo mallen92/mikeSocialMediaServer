@@ -16,7 +16,7 @@ const router = express.Router();
 router.post("/send", verifyAccessToken, async (req, res) => {
   const reqInfo = {
     recipId: req.query.id,
-    senderId: req.user,
+    senderId: req.userKey,
   };
   const recipCacheKey = req.get("profile-cache-key");
 
@@ -35,7 +35,7 @@ router.post("/send", verifyAccessToken, async (req, res) => {
 });
 
 router.post("/cancel", verifyAccessToken, async (req, res) => {
-  const userOut = req.user;
+  const userOut = req.userKey;
   const userIn = req.query.id;
   const recipCacheKey = req.get("profile-cache-key");
 
@@ -56,7 +56,7 @@ router.post("/cancel", verifyAccessToken, async (req, res) => {
 
 router.post("/reject", verifyAccessToken, async (req, res) => {
   const userOut = req.query.id;
-  const userIn = req.user;
+  const userIn = req.userKey;
   const recipCacheKey = req.get("profile-cache-key");
 
   try {
@@ -76,7 +76,7 @@ router.post("/reject", verifyAccessToken, async (req, res) => {
 
 router.post("/accept", verifyAccessToken, async (req, res) => {
   const reqInfo = {
-    recipId: req.user,
+    recipId: req.userKey,
     senderId: req.query.id,
   };
   const recipCacheKey = req.get("profile-cache-key");
@@ -96,13 +96,13 @@ router.post("/accept", verifyAccessToken, async (req, res) => {
 });
 
 router.post("/removeFriend", verifyAccessToken, async (req, res) => {
-  const userId = req.user;
+  const userKey = req.userKey;
   const userToRemove = req.query.id;
   const recipCacheKey = req.get("profile-cache-key");
 
   try {
     const response = await connectService.removeFriend(
-      userId,
+      userKey,
       userToRemove,
       recipCacheKey
     );

@@ -38,7 +38,8 @@ async function getFriendsInfo(Keys) {
     RequestItems: {
       TheSocial: {
         Keys,
-        ProjectionExpression: "id, userName, firstName, lastName, picFilename",
+        ProjectionExpression:
+          "username, userSearchName, firstName, lastName, picFilename",
       },
     },
   });

@@ -22,7 +22,7 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     const multerFile = req.file;
-    const userId = req.user;
+    const userKey = req.userKey;
     const profileCacheKey = req.get("profile-cache-key");
     const refreshToken = req.cookies?.jwt;
     if (!refreshToken) {
@@ -38,7 +38,7 @@ router.post(
 
       const response = await imageService.updateUserPic(
         multerFile,
-        userId,
+        userKey,
         sessionCacheKey,
         profileCacheKey
       );
@@ -70,7 +70,7 @@ router.post(
 );
 
 router.delete("/", verifyAccessToken, async (req, res) => {
-  const userId = req.user;
+  const userKey = req.userKey;
   const profileCacheKey = req.get("profile-cache-key");
   const refreshToken = req.cookies?.jwt;
   if (!refreshToken) {
@@ -82,7 +82,7 @@ router.delete("/", verifyAccessToken, async (req, res) => {
     const sessionCacheKey = verified.sessionKey;
 
     const response = await imageService.deleteUserPic(
-      userId,
+      userKey,
       sessionCacheKey,
       profileCacheKey
     );

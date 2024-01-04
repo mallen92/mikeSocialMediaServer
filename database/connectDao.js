@@ -140,14 +140,14 @@ async function acceptFriendRequest(reqInfo) {
   return await docClient.send(command);
 }
 
-async function removeFriend(userId, userToRemove) {
+async function removeFriend(userKey, userToRemove) {
   const command = new BatchWriteCommand({
     RequestItems: {
       TheSocial: [
         {
           DeleteRequest: {
             Key: {
-              PK: `u#${userId}#friends`,
+              PK: `u#${userKey}#friends`,
               SK: `u#${userToRemove}`,
             },
           },
@@ -156,7 +156,7 @@ async function removeFriend(userId, userToRemove) {
           DeleteRequest: {
             Key: {
               PK: `u#${userToRemove}#friends`,
-              SK: `u#${userId}`,
+              SK: `u#${userKey}`,
             },
           },
         },

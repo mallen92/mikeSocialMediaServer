@@ -35,19 +35,19 @@ async function getLogin(acctEmail) {
   return await docClient.send(command);
 }
 
-async function putUser(user) {
+async function putUser(key, user) {
   const {
-    id,
     firstName,
     lastName,
+    picFilename,
+    username,
     email,
     password,
     birthDate,
     signupDate,
-    picFilename,
   } = user;
 
-  let userName = `${firstName} ${lastName}`.toLowerCase();
+  let userSearchName = `${firstName} ${lastName}`.toLowerCase();
 
   const command = new BatchWriteCommand({
     RequestItems: {
@@ -55,8 +55,8 @@ async function putUser(user) {
         {
           PutRequest: {
             Item: {
-              PK: `u#${id}`,
-              SK: `u#${id}#login`,
+              PK: `u#${key}`,
+              SK: `u#${key}#login`,
               acctEmail: email,
               acctPassword: password,
             },
@@ -65,22 +65,22 @@ async function putUser(user) {
         {
           PutRequest: {
             Item: {
-              PK: `u#${id}`,
-              SK: `u#${id}#user`,
-              userSearchKey: "user",
-              userName,
-              id,
+              PK: `u#${key}`,
+              SK: `u#${key}`,
+              userPK: username,
+              userSearchName,
               firstName,
               lastName,
               picFilename,
+              username,
             },
           },
         },
         {
           PutRequest: {
             Item: {
-              PK: `u#${id}`,
-              SK: `u#${id}#about`,
+              PK: `u#${key}`,
+              SK: `u#${key}#about`,
               birthDate,
               signupDate,
               contactEmail: email,
@@ -94,20 +94,48 @@ async function putUser(user) {
   return await docClient.send(command);
 }
 
-async function getUser(id) {
+async function getUserByKey(key) {
   const command = new GetCommand({
     TableName,
-    Key: { PK: `u#${id}`, SK: `u#${id}#user` },
-    ProjectionExpression: "id, firstName, lastName, picFilename",
+    Key: { PK: `u#${key}`, SK: `u#${key}` },
+    ProjectionExpression: "username, firstName, lastName, picFilename",
   });
 
   return await docClient.send(command);
 }
 
-async function updatePicFilenameInDB(userId, filename) {
+async function getUserByUsername(username) {
+  const command = new QueryCommand({
+    TableName,
+    IndexName: "TheSocialUsers",
+    KeyConditionExpression: "userPK = :val",
+    ExpressionAttributeValues: {
+      ":val": username,
+    },
+    ProjectionExpression: "username, firstName, lastName, picFilename",
+  });
+
+  return await docClient.send(command);
+}
+
+async function getUserKey(username) {
+  const command = new QueryCommand({
+    TableName,
+    IndexName: "TheSocialUsers",
+    KeyConditionExpression: "userPK = :val",
+    ExpressionAttributeValues: {
+      ":val": username,
+    },
+    ProjectionExpression: "PK",
+  });
+
+  return await docClient.send(command);
+}
+
+async function updatePicFilenameInDB(userKey, filename) {
   const command = new UpdateCommand({
     TableName,
-    Key: { PK: `u#${userId}`, SK: `u#${userId}#user` },
+    Key: { PK: `u#${userKey}`, SK: `u#${userKey}` },
     UpdateExpression: "SET picFilename = :filename",
     ExpressionAttributeValues: {
       ":filename": filename,
@@ -122,7 +150,7 @@ async function getUsers() {
   const command = new ScanCommand({
     TableName,
     IndexName: "TheSocialUsers",
-    ProjectionExpression: "id, firstName, lastName, picFilename",
+    ProjectionExpression: "username, firstName, lastName, picFilename",
   });
 
   return await docClient.send(command);
@@ -131,7 +159,9 @@ async function getUsers() {
 module.exports = {
   getLogin,
   putUser,
-  getUser,
+  getUserByKey,
+  getUserByUsername,
+  getUserKey,
   updatePicFilenameInDB,
   getUsers,
 };

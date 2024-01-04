@@ -22,8 +22,8 @@ async function acceptFriendRequest(reqInfo, recipCacheKey) {
   return status;
 }
 
-async function removeFriend(userId, userToRemove, recipCacheKey) {
-  await connectDao.removeFriend(userId, userToRemove);
+async function removeFriend(userKey, userToRemove, recipCacheKey) {
+  await connectDao.removeFriend(userKey, userToRemove);
   const status = "not a friend";
   await userCache.updateFriendStatus(recipCacheKey, status);
   return status;

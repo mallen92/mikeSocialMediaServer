@@ -10,7 +10,7 @@ function verifyAccessToken(req, res, next) {
 
     const accessToken = authHeader.split(" ")[1];
     const verified = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-    req.user = verified.id;
+    req.userKey = verified.userKey;
     next();
   } catch (error) {
     switch (error.message) {

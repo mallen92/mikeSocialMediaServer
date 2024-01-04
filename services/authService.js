@@ -24,22 +24,22 @@ async function signUpUser(signupFormData) {
 
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash(password, salt);
-  const id = UniqueString().substring(15);
+  const userKey = UniqueString().substring(0, 10);
   const picFilename = process.env.DEFAULT_PROF_PIC;
 
   const newUser = {
-    id,
     firstName,
     lastName,
     picFilename,
+    username: userKey,
     email,
     password: hashedPassword,
     birthDate: formatDate(birthDate),
     signupDate: formatDate(moment()),
   };
-  await createUser(newUser);
-  let { user, sessionKey } = await getUserAccount(id);
-  const tokens = getTokens(id, sessionKey);
+  await createUser(userKey, newUser);
+  let { user, sessionKey } = await getUserAccount(userKey);
+  const tokens = getTokens(userKey, sessionKey);
   user.accessToken = tokens.accessToken;
 
   return {
@@ -59,9 +59,9 @@ async function logInUser(loginFormData) {
   );
   if (!passwordsMatch) throw new Error("incorrectCredentials");
 
-  const userId = existingAcctCreds.PK.split("#")[1];
-  let { user, sessionKey } = await getUserAccount(userId);
-  const tokens = getTokens(userId, sessionKey);
+  const userKey = existingAcctCreds.PK.split("#")[1];
+  let { user, sessionKey } = await getUserAccount(userKey);
+  const tokens = getTokens(userKey, sessionKey);
   user.accessToken = tokens.accessToken;
 
   return {
@@ -80,7 +80,7 @@ async function clearSessionFromCache(key) {
   await clearSession(key);
 }
 
-/* HELPER FUNCTIONS */
+/*--------------------------- HELPER FUNCTIONS ---------------------------*/
 
 function formatDate(date) {
   const month = moment(date).month() + 1;
@@ -90,8 +90,8 @@ function formatDate(date) {
   return `${month}/${day}/${year}`;
 }
 
-function getTokens(id, sessionKey) {
-  const accessToken = jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+function getTokens(userKey, sessionKey) {
+  const accessToken = jwt.sign({ userKey }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "1h",
   });
   const refreshToken = jwt.sign(
@@ -104,7 +104,7 @@ function getTokens(id, sessionKey) {
   return { accessToken, refreshToken };
 }
 
-/* END HELPER FUNCTIONS */
+/*------------------------ END HELPER FUNCTIONS ------------------------*/
 
 module.exports = {
   signUpUser,

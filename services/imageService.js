@@ -24,7 +24,7 @@ async function getUserPic(filename) {
 
 async function updateUserPic(
   multerFile,
-  userId,
+  userKey,
   sessionCacheKey,
   profileCacheKey
 ) {
@@ -41,7 +41,7 @@ async function updateUserPic(
     profileCacheKey,
     newPicFilename
   );
-  const output = await updatePicFilenameInDB(userId, newPicFilename);
+  const output = await updatePicFilenameInDB(userKey, newPicFilename);
   const oldPicFilename = output.Attributes.picFilename;
   if (oldPicFilename !== defaultPicFilename) await deleteImage(oldPicFilename);
 
@@ -49,8 +49,8 @@ async function updateUserPic(
   return { newPicUrl, newPicFilename };
 }
 
-async function deleteUserPic(userId, sessionCacheKey, profileCacheKey) {
-  const output = await updatePicFilenameInDB(userId, defaultPicFilename);
+async function deleteUserPic(userKey, sessionCacheKey, profileCacheKey) {
+  const output = await updatePicFilenameInDB(userKey, defaultPicFilename);
   if (output.Attributes.picFilename === defaultPicFilename)
     throw new Error("deleteError");
 

@@ -11,17 +11,17 @@ const userService = require("../services/userService");
 const router = express.Router();
 
 router.get("/friends", async (req, res) => {
-  const requestedUserId = req.query.id;
+  const reqUser = req.query.u;
   const keyword = req.query.keyword;
   const panel = Boolean(req.query.panel);
   let data;
 
   try {
     if (!keyword) {
-      if (!panel) data = await userService.getUserFriends(requestedUserId);
+      if (!panel) data = await userService.getUserFriends(reqUser);
       else
-        data = await userService.getUserFriends(requestedUserId, null, panel);
-    } else data = await userService.getUserFriends(requestedUserId, keyword);
+        data = await userService.getUserFriends(reqUser, null, panel);
+    } else data = await userService.getUserFriends(reqUser, keyword);
     res.status(200).json(data);
   } catch (error) {
     if (error.message === "invalidKeyword")

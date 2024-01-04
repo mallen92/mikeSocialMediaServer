@@ -14,6 +14,7 @@ const userHandlers = require("./handlers/userHandlers");
 const imageHandlers = require("./handlers/imageHandlers");
 const connectHandlers = require("./handlers/connectHandlers");
 const listHandlers = require("./handlers/listHandlers");
+const postHandlers = require("./handlers/postHandlers");
 
 /*----------------- SERVER CONFIGURATIONS ------------------*/
 const app = express();
@@ -30,6 +31,7 @@ app.use("/user", userHandlers);
 app.use("/images", imageHandlers);
 app.use("/connect", connectHandlers);
 app.use("/list", listHandlers);
+app.use("/posts", postHandlers);
 
 redisClient
   .connect()

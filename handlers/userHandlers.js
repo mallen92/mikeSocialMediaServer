@@ -11,14 +11,14 @@ const userService = require("../services/userService");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-  const requestedUserId = req.query.id;
-  const cachedProfileKey = req.query.key;
-  const requestingUserId = req.get("requesting-user-id");
+  const cachedProfileKey = req.query.ck;
+  const requestedUser = req.query.u;
+  const requestingUser = req.get("requesting-user");
 
   try {
     const data = await userService.getUserProfile(
-      requestedUserId,
-      requestingUserId,
+      requestedUser,
+      requestingUser,
       cachedProfileKey
     );
     res.status(200).json(data);
@@ -31,13 +31,13 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/search", async (req, res) => {
-  const idSearch = req.body.id;
+  const usernameSearch = req.body.username;
   const fNameSearch = req.body.fName;
   const lNameSearch = req.body.lName;
 
   try {
     const data = await userService.searchUsers(
-      idSearch,
+      usernameSearch,
       fNameSearch,
       lNameSearch
     );
